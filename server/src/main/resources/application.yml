@@ -16,10 +16,54 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     database: postgresql
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            timeout: 5000
+  ai:
+    openai:
+      api-key: ${OPENAI_KEY}
+      chat:
+        enabled: true
+        options:
+          model: gpt-4
+          temperature: 0.7
+    vectorstore:
+      pgvector:
+        distance-type: COSINE_DISTANCE
+        index-type: HNSW
+        dimensions: 1536
+        remove-existing-vector-store-table: true
+
+cloudinary:
+  name: "dzmzrbuta"
+  api:
+    key: ${CLOUDINARY_KEY}
+    secret: ${CLOUDINARY_SECRET}
+
 server:
   port: 8090
   error:
     include-message: always
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+
+frontend:
+  url: ${FRONTEND_URL}
+
+backend:
+  url: ${BACKEND_URL}
 
 logging:
   level:
