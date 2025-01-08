@@ -31,9 +31,6 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "is_verified")
-    private Boolean isVerified = false;
-
     private Boolean active = false;
 
     @ManyToMany(fetch = FetchType.EAGER)
