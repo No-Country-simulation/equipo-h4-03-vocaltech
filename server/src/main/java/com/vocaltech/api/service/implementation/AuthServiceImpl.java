@@ -1,6 +1,7 @@
 package com.vocaltech.api.service.implementation;
 
 import com.vocaltech.api.config.mapper.UserMapper;
+import com.vocaltech.api.config.security.JwtService;
 import com.vocaltech.api.dto.request.auth.RegisterRequestDto;
 import com.vocaltech.api.dto.response.auth.AuthResponseDto;
 import com.vocaltech.api.dto.response.auth.UserResponseDto;
@@ -27,6 +28,7 @@ public class AuthServiceImpl implements AuthService {
     private final IUserRepository userRepository;
     private final IRoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     @Override
     public AuthResponseDto register(RegisterRequestDto dto) {
@@ -47,6 +49,13 @@ public class AuthServiceImpl implements AuthService {
 
     private AuthResponseDto generateResponse(User user) {
         UserResponseDto userR = mapper.toUserResponseDTO(user);
-        return null;
+
+        String token = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
+        user.setRefreshToken(refreshToken);
+        userRepository.save(user);
+
+        return new AuthResponseDto(userR,token, refreshToken);
     }
 }
