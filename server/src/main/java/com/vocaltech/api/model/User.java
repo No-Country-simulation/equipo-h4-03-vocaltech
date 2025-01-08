@@ -1,7 +1,6 @@
 package com.vocaltech.api.model;
 
 import jakarta.persistence.*;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.annotation.Profile;
@@ -16,7 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Builder
+
 @Entity
 @Table(name = "users")
 @Getter
