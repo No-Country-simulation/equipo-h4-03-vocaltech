@@ -5,4 +5,5 @@ import com.vocaltech.api.dto.response.auth.AuthResponseDto;
 
 public interface AuthService {
     AuthResponseDto register(RegisterRequestDto dto);
+    AuthResponseDto login(LoginRequestDto dto);
 }
