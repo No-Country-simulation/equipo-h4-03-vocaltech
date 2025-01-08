@@ -11,7 +11,6 @@ public record UserResponseDto(
         String email,
         String name,
         String lastname,
-        String dni,
         Set<RoleResponseDto> roles
 ) {
 }
