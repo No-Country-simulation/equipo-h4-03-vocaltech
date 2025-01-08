@@ -1,5 +1,8 @@
 package com.vocaltech.api.config.security;
 
+import com.vocaltech.api.exception.InvalidTokenException;
+import com.vocaltech.api.exception.TokenExpiredException;
+import com.vocaltech.api.exception.TokenProcessingException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
