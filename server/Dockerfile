@@ -1,5 +1,5 @@
 # IMAGEN MODELO, HACER UN BUILD PARA LUEGO COPIARLO Y QUE LA IMAGEN FINAL SEA MAS LIVIANO.
-FROM amazoncorretto:17-alpine-jdk as build
+FROM eclipse-temurin:21.0.3_9-jdk as build
 
 # INFORMAR EL PUERTO DONDE SE EJECUTA EL CONTENEDOR (INFORMATIVO)
 EXPOSE 8090
@@ -26,7 +26,7 @@ COPY ./src /root/src
 # PERMITE EJECUTAR EL INSTALL A PESAR DE NO TENER LAS ENVS. -D SKIP TESTS.
 RUN ./mvnw clean install -DskipTests
 
-FROM amazoncorretto:17-alpine-jdk
+FROM eclipse-temurin:21.0.3_9-jdk
 
 # CONSTRUIR NUESTRA APLICACION
 COPY --from=build /root/target/*.jar app.jar
