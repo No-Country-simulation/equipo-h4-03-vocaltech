@@ -2,6 +2,7 @@ package com.vocaltech.api.controller.auth;
 
 import com.vocaltech.api.config.CurrentUser;
 import com.vocaltech.api.dto.request.auth.LoginRequestDto;
+import com.vocaltech.api.dto.request.auth.RefreshTokenRequest;
 import com.vocaltech.api.dto.request.auth.RegisterRequestDto;
 import com.vocaltech.api.dto.response.auth.AuthResponseDto;
 import com.vocaltech.api.model.User;
@@ -31,5 +32,11 @@ public class AuthController {
     @GetMapping("/check-login")
     public ResponseEntity<AuthResponseDto> checkLogin (@CurrentUser User user) {
         return ResponseEntity.ok().body(authService.checkLogin(user.getEmail()));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String accessToken, @RequestBody @Valid RefreshTokenRequest request) {
+        authService.logout(request.refreshToken(), accessToken.substring(7));
+        return ResponseEntity.noContent().build();
     }
 }

@@ -8,4 +8,5 @@ public interface AuthService {
     AuthResponseDto register(RegisterRequestDto dto);
     AuthResponseDto login(LoginRequestDto dto);
     AuthResponseDto checkLogin(String email);
+    void logout(String refreshToken , String accessToken);
 }
