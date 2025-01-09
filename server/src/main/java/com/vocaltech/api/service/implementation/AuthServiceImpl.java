@@ -65,6 +65,13 @@ public class AuthServiceImpl implements AuthService {
         return generateResponse(user);
     }
 
+    @Override
+    public AuthResponseDto checkLogin(String email) {
+        User user = userRepository.findUserByEmail(email)
+                .orElseThrow(() -> new NotFoundException(String.format("User not found with email: %s",email)));
+        return generateResponse(user);
+    }
+
     private AuthResponseDto generateResponse(User user) {
         UserResponseDto userR = mapper.toUserResponseDTO(user);
 

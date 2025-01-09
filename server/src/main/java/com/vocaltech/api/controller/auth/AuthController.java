@@ -1,8 +1,10 @@
 package com.vocaltech.api.controller.auth;
 
+import com.vocaltech.api.config.CurrentUser;
 import com.vocaltech.api.dto.request.auth.LoginRequestDto;
 import com.vocaltech.api.dto.request.auth.RegisterRequestDto;
 import com.vocaltech.api.dto.response.auth.AuthResponseDto;
+import com.vocaltech.api.model.User;
 import com.vocaltech.api.service.interfaces.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,5 +26,10 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDto> login (@Valid @RequestBody LoginRequestDto dto) {
         return ResponseEntity.ok().body(authService.login(dto));
+    }
+
+    @GetMapping("/check-login")
+    public ResponseEntity<AuthResponseDto> checkLogin (@CurrentUser User user) {
+        return ResponseEntity.ok().body(authService.checkLogin(user.getEmail()));
     }
 }
