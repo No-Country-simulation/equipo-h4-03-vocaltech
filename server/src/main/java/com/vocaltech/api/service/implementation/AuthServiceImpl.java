@@ -15,6 +15,8 @@ import com.vocaltech.api.repository.IUserRepository;
 import com.vocaltech.api.service.interfaces.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +31,7 @@ public class AuthServiceImpl implements AuthService {
     private final IUserRepository userRepository;
     private final IRoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
     @Override
@@ -50,7 +53,16 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponseDto login(LoginRequestDto dto) {
-        return null;
+        try {
+            authenticationManager
+                    .authenticate(new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword()));
+        } catch (Exception e) {
+            throw new BadRequestException("Invalid username or password");
+        }
+        User user = userRepository.findUserByEmail(dto.getEmail())
+                .orElseThrow(() -> new NotFoundException(String.format("User not found with email: %s",dto.getEmail())));
+
+        return generateResponse(user);
     }
 
     private AuthResponseDto generateResponse(User user) {
