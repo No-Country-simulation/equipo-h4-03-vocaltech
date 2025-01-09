@@ -26,7 +26,7 @@ import java.util.List;
 public class SecurityConfig {
     private static final String[] PUBLIC_ENDPOINTS_WHITELIST = {
             "/api/auth/login",
-            "/api/auth/signup"
+            "/api/auth/signup",
     };
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers(PUBLIC_ENDPOINTS_WHITELIST).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/check-login").hasAnyRole("ADMIN_NO_COUNTRY", "ADMIN_VOS_Y_TU_VOZ", "ENTREPRENEUR", "COMPANY_LEADER")
                         .requestMatchers("/api/admin/**").hasAnyRole("ADMIN_NO_COUNTRY", "ADMIN_VOS_Y_TU_VOZ")
+                        .requestMatchers(HttpMethod.POST, "/auth/refresh-token").authenticated()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
