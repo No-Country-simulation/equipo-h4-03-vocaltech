@@ -43,7 +43,7 @@ public class SecurityConfig {
                         .requestMatchers(PUBLIC_ENDPOINTS_WHITELIST).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/check-login").hasAnyRole("ADMIN_NO_COUNTRY", "ADMIN_VOS_Y_TU_VOZ", "ENTREPRENEUR", "COMPANY_LEADER")
                         .requestMatchers("/api/admin/**").hasAnyRole("ADMIN_NO_COUNTRY", "ADMIN_VOS_Y_TU_VOZ")
-                        .requestMatchers(HttpMethod.POST, "/auth/refresh-token").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/refresh-token").authenticated()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
