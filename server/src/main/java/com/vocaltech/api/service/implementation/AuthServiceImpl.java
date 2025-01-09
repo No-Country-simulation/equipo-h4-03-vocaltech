@@ -23,6 +23,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -39,6 +40,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final TokenBlacklistRepository tokenBlacklistRepository;
 
+    @Transactional
     @Override
     public AuthResponseDto register(RegisterRequestDto dto) {
         Optional<User> userFound = userRepository.findUserByEmail(dto.getEmail());
@@ -77,6 +79,7 @@ public class AuthServiceImpl implements AuthService {
         return generateResponse(user);
     }
 
+    @Transactional
     @Override
     public void logout(String refreshToken, String accessToken) {
         String username = jwtService.getUsernameFromToken(refreshToken);
@@ -93,6 +96,7 @@ public class AuthServiceImpl implements AuthService {
         tokenBlacklistRepository.save(tokenBlacklist);
     }
 
+    @Transactional
     @Override
     public AuthResponseDto refreshToken(String refreshToken) {
         if (!jwtService.isTokenExpired(refreshToken)) {
@@ -117,6 +121,7 @@ public class AuthServiceImpl implements AuthService {
         return new AuthResponseDto(mapper.toUserResponseDTO(user), newToken, newRefreshToken);
     }
 
+    @Transactional
     private AuthResponseDto generateResponse(User user) {
         UserResponseDto userR = mapper.toUserResponseDTO(user);
 
