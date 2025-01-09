@@ -7,7 +7,9 @@ import com.vocaltech.api.dto.request.auth.RegisterRequestDto;
 import com.vocaltech.api.dto.response.auth.AuthResponseDto;
 import com.vocaltech.api.dto.response.auth.UserResponseDto;
 import com.vocaltech.api.exception.BadRequestException;
+import com.vocaltech.api.exception.InvalidTokenException;
 import com.vocaltech.api.exception.NotFoundException;
+import com.vocaltech.api.exception.TokenExpiredException;
 import com.vocaltech.api.model.Role;
 import com.vocaltech.api.model.TokenBlacklist;
 import com.vocaltech.api.model.User;
@@ -89,6 +91,30 @@ public class AuthServiceImpl implements AuthService {
         tokenBlacklist.setToken(accessToken);
         tokenBlacklist.setExpiryDate(jwtService.getExpiration(accessToken));
         tokenBlacklistRepository.save(tokenBlacklist);
+    }
+
+    @Override
+    public AuthResponseDto refreshToken(String refreshToken) {
+        if (!jwtService.isTokenExpired(refreshToken)) {
+            throw new TokenExpiredException("El token de refresco ha expirado.", null);
+        }
+
+        String username = jwtService.getUsernameFromToken(refreshToken);
+
+        User user = userRepository.findUserByEmail(username)
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado con el correo: " + username));
+
+        if (!refreshToken.equals(user.getRefreshToken())) {
+            throw new InvalidTokenException("El token de refresco no coincide.", null);
+        }
+
+        String newToken = jwtService.generateToken(user);
+        String newRefreshToken = jwtService.generateRefreshToken(user);
+
+        user.setRefreshToken(newRefreshToken);
+        userRepository.save(user);
+
+        return new AuthResponseDto(mapper.toUserResponseDTO(user), newToken, newRefreshToken);
     }
 
     private AuthResponseDto generateResponse(User user) {
