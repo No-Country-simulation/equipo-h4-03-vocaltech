@@ -43,8 +43,20 @@ spring:
         dimensions: 1536
         remove-existing-vector-store-table: true
 
+  jackson:
+    mapper:
+      accept-case-insensitive-properties: true
+    serialization:
+      fail-on-empty-beans: false
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+
 cloudinary:
-  name: "dzmzrbuta"
+  name: ${CLOUDINARY_NAME}
   api:
     key: ${CLOUDINARY_KEY}
     secret: ${CLOUDINARY_SECRET}
