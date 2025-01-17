@@ -4,6 +4,7 @@ import lombok.*;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -16,27 +17,27 @@ public class Service {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "service_id")
-    private Long id;
+    private UUID serviceId;
 
     @Column
-    private String nombre;
+    private String name;
 
     @Column
-    private String descripcion;
+    private String description;
 
     @Column
-    private Double precio;
+    private Double price;
 
     @Column
-    private String categoria;
+    private String category;
 
     private Boolean active = true;
 
-    @Column(name = "fecha_creacion", updatable = false)
-    private LocalDateTime fechaCreacion;
+    @Column(name = "date_creation", updatable = false)
+    private LocalDateTime dateCreation;
 
-    @Column(name = "fecha_actualizacion")
-    private LocalDateTime fechaActualizacion;
+    @Column(name = "date_actualization")
+    private LocalDateTime dateActualization;
 }
 
 
