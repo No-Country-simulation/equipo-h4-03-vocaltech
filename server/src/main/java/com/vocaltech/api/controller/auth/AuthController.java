@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@SecurityRequirement(name = "bearer-key")
 public class AuthController {
     private final AuthService authService;
 
@@ -31,16 +30,19 @@ public class AuthController {
         return ResponseEntity.ok().body(authService.login(dto));
     }
 
+    @SecurityRequirement(name = "bearer-key")
     @GetMapping("/check-login")
     public ResponseEntity<AuthResponseDto> checkLogin (@CurrentUser User user) {
         return ResponseEntity.ok().body(authService.checkLogin(user.getEmail()));
     }
 
+    @SecurityRequirement(name = "bearer-key")
     @PostMapping("/refresh-token")
     public ResponseEntity<AuthResponseDto> refreshToken(@RequestBody @Valid RefreshTokenRequest request)  {
         return ResponseEntity.ok(authService.refreshToken(request.refreshToken()));
     }
 
+    @SecurityRequirement(name = "bearer-key")
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestHeader("Authorization") String accessToken, @RequestBody @Valid RefreshTokenRequest request) {
         authService.logout(request.refreshToken(), accessToken.substring(7));
