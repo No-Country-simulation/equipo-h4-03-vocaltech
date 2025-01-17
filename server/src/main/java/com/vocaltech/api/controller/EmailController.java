@@ -16,7 +16,7 @@ import java.io.File;
 
 @RestController
 @RequestMapping("/api/emails")
-//@SecurityRequirement(name = "bearer-key")
+@SecurityRequirement(name = "bearer-key")
 public class EmailController {
 
     private final EmailService emailService;
