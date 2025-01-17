@@ -27,7 +27,10 @@ public class SecurityConfig {
     private static final String[] PUBLIC_ENDPOINTS_WHITELIST = {
             "/api/auth/login",
             "/api/auth/signup",
-            "/api/emails/sendWithAttachment",
+            "/v3/api-docs/**",
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+
     };
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
