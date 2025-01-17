@@ -6,6 +6,7 @@ import com.vocaltech.api.service.CloudinaryService;
 import com.vocaltech.api.service.EmailService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +23,7 @@ public class EmailController {
     private final CloudinaryService cloudinaryService;
 
     @Autowired
-    public EmailController(EmailService emailService, CloudinaryService cloudinaryService) {
+    public EmailController(@Lazy EmailService emailService, @Lazy CloudinaryService cloudinaryService) {
         this.emailService = emailService;
         this.cloudinaryService = cloudinaryService;
     }
@@ -41,7 +42,7 @@ public class EmailController {
 
 
     @PostMapping("/sendWithAttachment")
-    public ResponseEntity<String> sendEmailWithAttachment(@ModelAttribute EmailFiletDTO emailRequest) {
+    public ResponseEntity<String> sendEmailWithAttachment(@ModelAttribute @Valid EmailFiletDTO emailRequest) {
         try {
             if (emailRequest.file() == null) {
                 return ResponseEntity.status(400).body("File is null");
