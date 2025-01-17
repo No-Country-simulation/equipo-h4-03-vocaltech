@@ -4,6 +4,7 @@ import com.vocaltech.api.dto.email.EmailFiletDTO;
 import com.vocaltech.api.dto.email.EmailRequestDTO;
 import com.vocaltech.api.service.CloudinaryService;
 import com.vocaltech.api.service.EmailService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import java.io.File;
 
 @RestController
 @RequestMapping("/api/emails")
+@SecurityRequirement(name = "bearer-key")
 public class EmailController {
 
     private final EmailService emailService;

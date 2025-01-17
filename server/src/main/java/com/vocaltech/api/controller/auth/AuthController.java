@@ -7,6 +7,7 @@ import com.vocaltech.api.dto.request.auth.RegisterRequestDto;
 import com.vocaltech.api.dto.response.auth.AuthResponseDto;
 import com.vocaltech.api.model.User;
 import com.vocaltech.api.service.interfaces.AuthService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearer-key")
 public class AuthController {
     private final AuthService authService;
 
