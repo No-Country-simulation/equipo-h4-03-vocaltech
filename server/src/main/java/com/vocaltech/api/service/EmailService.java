@@ -20,7 +20,7 @@ import java.nio.charset.StandardCharsets;
 public class EmailService implements IEmailService {
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 
-   @Value("${username}")
+   @Value("${mail.username}")
    private String emailUser;
 
     private final JavaMailSender javaMailSender;
