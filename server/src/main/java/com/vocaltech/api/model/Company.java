@@ -1,12 +1,11 @@
 package com.vocaltech.api.model;
 
 
+import jakarta.persistence.*;
 import lombok.*;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -14,24 +13,30 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class Entrepreneur {
+public class Company {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "entrepreneur_id")
-    private UUID entrepreneurId;
+    @Column(name = "company_id")
+    private Long id;
 
     @Column(nullable = false)
-    private String name;
+    private String companyName;
+
+    @Column
+    private String sector;
+
+    @Column
+    private String size;
+
+    @Column
+    private String contactName;
 
     @Column(nullable = false, unique = true)
-    private String email;
+    private String contactEmail;
 
     @Column
-    private Integer phone;
-
-    @Column
-    private String type;
+    private String contactPhone;
 
     @Column
     private String description;
@@ -43,10 +48,13 @@ public class Entrepreneur {
     private Boolean MVP;
 
     @Column
-    private String productToDevelop;
+    private String developmentStage;
 
     @Column
     private Boolean hireJunior;
+
+    @ElementCollection
+    private List<String> talentProfile;
 
     @Column
     private Boolean moreInfo;
@@ -57,5 +65,4 @@ public class Entrepreneur {
     @Column(name = "interest_date")
     private LocalDateTime interestDate;
 
-    }
-
+}
