@@ -2,7 +2,9 @@ package com.vocaltech.api.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -18,6 +20,13 @@ public class Lead {
     @Column(name = "lead_id")
     private UUID leadId;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(name = "creation_date", nullable = false, updatable = false)
+    @CreationTimestamp
+    private LocalDateTime creationDate;
 }

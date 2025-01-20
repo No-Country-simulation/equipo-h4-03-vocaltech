@@ -1,4 +1,4 @@
-package com.vocaltech.api.dto.email;
+package com.vocaltech.api.dto.request.email;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
