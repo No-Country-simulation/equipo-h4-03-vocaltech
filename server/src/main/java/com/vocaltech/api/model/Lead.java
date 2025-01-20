@@ -26,7 +26,7 @@ public class Lead {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "date_creation", nullable = false, updatable = false)
+    @Column(name = "creation_date", nullable = false, updatable = false)
     @CreationTimestamp
-    private LocalDateTime dateCreation;
+    private LocalDateTime creationDate;
 }

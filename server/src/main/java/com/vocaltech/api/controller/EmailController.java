@@ -1,7 +1,7 @@
 package com.vocaltech.api.controller;
 
-import com.vocaltech.api.dto.email.EmailFiletDTO;
-import com.vocaltech.api.dto.email.EmailRequestDTO;
+import com.vocaltech.api.dto.request.email.EmailFiletDTO;
+import com.vocaltech.api.dto.request.email.EmailRequestDTO;
 import com.vocaltech.api.service.CloudinaryService;
 import com.vocaltech.api.service.EmailService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

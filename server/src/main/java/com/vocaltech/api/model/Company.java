@@ -18,6 +18,14 @@ import java.util.UUID;
 @Table(name = "companies")
 public class Company {
 
+    public enum CompanySize {
+        SMALL, MEDIUM, LARGE
+    }
+
+    public enum DevelopmentStage {
+        INITIAL_IDEA, DEVELOPMENT_IN_PROGRESS, IT_IS_ALREADY_TESTED, I_DONT_HAVE_A_DEFINED_MVP
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "company_id")
@@ -29,8 +37,9 @@ public class Company {
     @Column
     private String sector;
 
+    @Enumerated(EnumType.STRING)
     @Column
-    private String size;
+    private CompanySize size;
 
     @Column
     private String contactName;
@@ -47,8 +56,9 @@ public class Company {
     @Column
     private Boolean MVP;
 
+    @Enumerated(EnumType.STRING)
     @Column
-    private String developmentStage;
+    private DevelopmentStage developmentStage;
 
     @Column
     private Boolean hireJunior;

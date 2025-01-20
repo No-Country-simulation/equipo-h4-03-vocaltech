@@ -18,6 +18,14 @@ import java.util.UUID;
 @Table(name = "entrepreneurs")
 public class Entrepreneur {
 
+    public enum EntrepreneurType {
+        STARTUP, SMALL_BUSINESS, FREELANCE, OTHER
+    }
+
+    public enum ProductToDevelop {
+        MOBILE_APP, WEB_PLATFORM, PHYSICAL_PRODUCT, OTHER
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "entrepreneur_id")
@@ -32,8 +40,9 @@ public class Entrepreneur {
     @Column
     private String phone;
 
+    @Enumerated(EnumType.STRING)
     @Column
-    private String type;
+    private EntrepreneurType type;
 
     @Column
     private String description;
@@ -41,8 +50,9 @@ public class Entrepreneur {
     @Column
     private Boolean MVP;
 
+    @Enumerated(EnumType.STRING)
     @Column
-    private String productToDevelop;
+    private ProductToDevelop productToDevelop;
 
     @Column
     private Boolean hireJunior;
