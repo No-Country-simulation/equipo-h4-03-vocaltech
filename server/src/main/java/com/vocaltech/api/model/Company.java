@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -41,9 +42,6 @@ public class Company {
     @Column
     private String description;
 
-    @ElementCollection
-    private List<String> interestService;
-
     @Column
     private Boolean MVP;
 
@@ -62,7 +60,15 @@ public class Company {
     @Column
     private Boolean active;
 
-    @Column(name = "interest_date")
-    private LocalDateTime interestDate;
+    @ManyToMany
+    @JoinTable(
+            name = "company_service",
+            joinColumns = @JoinColumn(name = "company_id"),
+            inverseJoinColumns = @JoinColumn(name = "service_id")
+    )
+    private List<Service> services = new ArrayList<>();
+
+    @Column(name = "creation_date", updatable = false)
+    private LocalDateTime creationDate;
 
 }

@@ -4,6 +4,8 @@ import lombok.*;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -32,6 +34,13 @@ public class Service {
     private String category;
 
     private Boolean active = true;
+
+    @ManyToMany(mappedBy = "services")
+    private List<Company> companies = new ArrayList<>();
+
+    @ManyToMany(mappedBy = "services")
+    private List<Entrepreneur> entrepreneurs = new ArrayList<>();
+
 
     @Column(name = "date_creation", updatable = false)
     private LocalDateTime dateCreation;
