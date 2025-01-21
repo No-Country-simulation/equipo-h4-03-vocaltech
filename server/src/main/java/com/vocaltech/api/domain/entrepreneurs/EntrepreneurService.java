@@ -15,9 +15,9 @@ public class EntrepreneurService {
     private final IEntrepreneurRepository entrepreneurRepository;
     private final IProductRepository productRepository;
 
-    public EntrepreneurService(IEntrepreneurRepository entrepreneurRepository, IProductRepository serviceRepository) {
+    public EntrepreneurService(IEntrepreneurRepository entrepreneurRepository, IProductRepository productRepository) {
         this.entrepreneurRepository = entrepreneurRepository;
-        this.productRepository = serviceRepository;
+        this.productRepository = productRepository;
     }
 
     public Set<Product> getProductsFromNames(List<String> productNames) {
