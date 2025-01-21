@@ -1,7 +1,10 @@
-package com.vocaltech.api.dto.response.entrepreneur;
+package com.vocaltech.api.domain.entrepreneurs;
 
-import com.vocaltech.api.model.Entrepreneur;
+import com.vocaltech.api.domain.products.ProductResponseDTO;
+
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public record EntrepreneurResponseDTO(
         UUID id,
@@ -13,7 +16,8 @@ public record EntrepreneurResponseDTO(
         Boolean MVP,
         Entrepreneur.ProductToDevelop productToDevelop,
         Boolean hireJunior,
-        Boolean moreInfo
+        Boolean moreInfo,
+        Set<ProductResponseDTO> products
 ) {
 
        public static EntrepreneurResponseDTO fromEntity(Entrepreneur entrepreneur) {
@@ -27,8 +31,13 @@ public record EntrepreneurResponseDTO(
                 entrepreneur.getMVP(),
                 entrepreneur.getProductToDevelop(),
                 entrepreneur.getHireJunior(),
-                entrepreneur.getMoreInfo()
+                entrepreneur.getMoreInfo(),
+                entrepreneur.getProducts()
+                        .stream()
+                        .map(ProductResponseDTO::new)
+                        .collect(Collectors.toSet())
         );
+
     }
 
 

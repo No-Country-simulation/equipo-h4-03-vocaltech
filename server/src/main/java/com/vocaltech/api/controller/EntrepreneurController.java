@@ -1,9 +1,9 @@
 package com.vocaltech.api.controller;
 
-import com.vocaltech.api.dto.request.entrepeneur.EntrepreneurRequestDTO;
-import com.vocaltech.api.dto.response.entrepreneur.EntrepreneurResponseDTO;
-import com.vocaltech.api.model.Entrepreneur;
-import com.vocaltech.api.service.EntrepreneurService;
+import com.vocaltech.api.domain.entrepreneurs.EntrepreneurRequestDTO;
+import com.vocaltech.api.domain.entrepreneurs.EntrepreneurResponseDTO;
+import com.vocaltech.api.domain.entrepreneurs.Entrepreneur;
+import com.vocaltech.api.domain.entrepreneurs.EntrepreneurService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;

@@ -1,6 +1,7 @@
-package com.vocaltech.api.model;
+package com.vocaltech.api.domain.companies;
 
 
+import com.vocaltech.api.domain.products.Product;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -74,11 +75,11 @@ public class Company {
 
     @ManyToMany
     @JoinTable(
-            name = "company_service",
+            name = "company_product",
             joinColumns = @JoinColumn(name = "company_id"),
-            inverseJoinColumns = @JoinColumn(name = "service_id")
+            inverseJoinColumns = @JoinColumn(name = "product_id")
     )
-    private List<Service> services = new ArrayList<>();
+    private List<Product> products = new ArrayList<>();
 
     @Column(name = "creation_date", updatable = false)
     private LocalDateTime creationDate;

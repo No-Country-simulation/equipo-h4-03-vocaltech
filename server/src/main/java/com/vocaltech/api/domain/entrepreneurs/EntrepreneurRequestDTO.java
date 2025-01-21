@@ -1,7 +1,8 @@
-package com.vocaltech.api.dto.request.entrepeneur;
+package com.vocaltech.api.domain.entrepreneurs;
 
-import com.vocaltech.api.model.Entrepreneur;
 import jakarta.validation.constraints.*;
+
+import java.util.List;
 
 public record EntrepreneurRequestDTO(
 
@@ -31,6 +32,9 @@ public record EntrepreneurRequestDTO(
         @NotNull(message = "Debe indicar si desea más información")
         Boolean moreInfo,
 
+        @NotEmpty(message = "Debe seleccionar al menos un servicio")
+        List<String> products,
+
         Boolean active
 ) {
 
@@ -53,6 +57,7 @@ public record EntrepreneurRequestDTO(
                 dto.productToDevelop(),
                 dto.hireJunior(),
                 dto.moreInfo(),
+                dto.products(),
                 dto.active()
         );
     }

@@ -1,6 +1,7 @@
-package com.vocaltech.api.model;
+package com.vocaltech.api.domain.entrepreneurs;
 
 
+import com.vocaltech.api.domain.products.Product;
 import lombok.*;
 
 import jakarta.persistence.*;
@@ -65,11 +66,11 @@ public class Entrepreneur {
 
     @ManyToMany
     @JoinTable(
-            name = "entrepreneur_service",
+            name = "entrepreneur_product",
             joinColumns = @JoinColumn(name = "entrepreneur_id"),
-            inverseJoinColumns = @JoinColumn(name = "service_id")
+            inverseJoinColumns = @JoinColumn(name = "product_id")
     )
-    private List<Service> services = new ArrayList<>();
+    private List<Product> products = new ArrayList<>();
 
     @Column(name = "interest_date")
     private LocalDateTime interestDate;
