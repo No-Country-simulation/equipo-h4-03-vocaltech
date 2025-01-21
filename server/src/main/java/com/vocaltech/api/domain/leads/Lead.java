@@ -1,4 +1,4 @@
-package com.vocaltech.api.model;
+package com.vocaltech.api.domain.leads;
 
 import jakarta.persistence.*;
 import lombok.*;

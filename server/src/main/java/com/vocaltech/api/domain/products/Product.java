@@ -1,5 +1,7 @@
-package com.vocaltech.api.model;
+package com.vocaltech.api.domain.products;
 
+import com.vocaltech.api.domain.companies.Company;
+import com.vocaltech.api.domain.entrepreneurs.Entrepreneur;
 import lombok.*;
 
 import jakarta.persistence.*;
@@ -14,13 +16,13 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "services")
-public class Service {
+@Table(name = "products")
+public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "service_id")
-    private UUID serviceId;
+    @Column(name = "product_id")
+    private UUID productId;
 
     @Column
     private String name;
@@ -36,18 +38,18 @@ public class Service {
 
     private Boolean active = true;
 
-    @ManyToMany(mappedBy = "services")
+    @ManyToMany(mappedBy = "products")
     private List<Company> companies = new ArrayList<>();
 
-    @ManyToMany(mappedBy = "services")
+    @ManyToMany(mappedBy = "products")
     private List<Entrepreneur> entrepreneurs = new ArrayList<>();
 
 
-    @Column(name = "date_creation", updatable = false)
-    private LocalDateTime dateCreation;
+    @Column(name = "creation_date", updatable = false)
+    private LocalDateTime creationDate;
 
-    @Column(name = "date_actualization")
-    private LocalDateTime dateActualization;
+    @Column(name = "actualization_date")
+    private LocalDateTime actualizationDate;
 }
 
 

@@ -1,21 +1,43 @@
-package com.vocaltech.api.service;
+package com.vocaltech.api.domain.entrepreneurs;
 
-import com.vocaltech.api.dto.request.entrepeneur.EntrepreneurRequestDTO;
-import com.vocaltech.api.model.Entrepreneur;
-import com.vocaltech.api.repository.EntrepreneurRepository;
+import com.vocaltech.api.domain.products.IProductRepository;
+import com.vocaltech.api.domain.products.Product;
+import com.vocaltech.api.domain.products.ProductEnum;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class EntrepreneurService {
 
-    private final EntrepreneurRepository entrepreneurRepository;
+    private final IEntrepreneurRepository entrepreneurRepository;
+    private final IProductRepository productRepository;
 
-    public EntrepreneurService(EntrepreneurRepository entrepreneurRepository) {
+    public EntrepreneurService(IEntrepreneurRepository entrepreneurRepository, IProductRepository serviceRepository) {
         this.entrepreneurRepository = entrepreneurRepository;
+        this.productRepository = serviceRepository;
     }
+
+    public Set<Product> getProductsFromNames(List<String> productNames) {
+        // Convertir nombres a IDs usando ProductEnum y cargar los servicios desde la base de datos
+        Set<UUID> productsIds = productNames.stream()
+                .map(ProductEnum::fromName)  // Convierte el nombre al enum
+                .map(ProductEnum::getId)     // Obtiene el ID del enum
+                .collect(Collectors.toSet());
+
+        // Cargar los productos desde la base de datos utilizando los IDs
+        Set<Product> products = new HashSet<>(productRepository.findAllById(productsIds));
+
+        // Verificar si todos los productos fueron encontrados
+        if (products.size() != productsIds.size()) {
+            throw new EntityNotFoundException("Algunos servicios no se encontraron en la base de datos.");
+        }
+
+        return products;
+    }
+
 
     public Entrepreneur createEntrepreneur(EntrepreneurRequestDTO requestDTO) {
         Entrepreneur entrepreneur = new Entrepreneur();
@@ -29,8 +51,17 @@ public class EntrepreneurService {
         entrepreneur.setHireJunior(requestDTO.hireJunior());
         entrepreneur.setMoreInfo(requestDTO.moreInfo());
         entrepreneur.setActive(true);
+
+        Set<Product> products = getProductsFromNames(requestDTO.products());
+
+       // Convertir Set a List antes de asignarlo
+        entrepreneur.setProducts(new ArrayList<>(products));
+
+        // Guardar el emprendedor
         return entrepreneurRepository.save(entrepreneur);
     }
+
+
 
     public List<Entrepreneur> getAllEntrepreneurs() {
         return entrepreneurRepository.findAll();
@@ -75,6 +106,14 @@ public class EntrepreneurService {
         }
         if (requestDTO.moreInfo() != null) {
             entrepreneur.setMoreInfo(requestDTO.moreInfo());
+        }
+
+        if (requestDTO.products() != null && !requestDTO.products().isEmpty()) {
+
+            Set<Product> products = getProductsFromNames(requestDTO.products());
+
+            // Convertir Set a List antes de asignarlo
+            entrepreneur.setProducts(new ArrayList<>(products));
         }
 
         return entrepreneurRepository.save(entrepreneur);
