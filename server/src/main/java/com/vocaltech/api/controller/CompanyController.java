@@ -27,8 +27,13 @@ public class CompanyController {
 
     // Crear una empresa
     @PostMapping
-    public ResponseEntity<CompanyResponseDTO> createCompany(@Valid @RequestBody CompanyRequestDTO requestDTO) {
-        Company company = companyService.createCompany(requestDTO);
+    public ResponseEntity<CompanyResponseDTO> createCompany(
+            @Valid
+            @RequestBody
+            CompanyRequestDTO requestDTO,
+            @RequestParam(required = false) UUID leadId)
+    {
+        Company company = companyService.createCompany(requestDTO, leadId);
 
         // Crear la URL del recurso creado
         URI location = ServletUriComponentsBuilder

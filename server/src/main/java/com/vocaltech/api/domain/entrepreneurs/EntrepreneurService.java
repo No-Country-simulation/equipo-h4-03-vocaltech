@@ -1,5 +1,7 @@
 package com.vocaltech.api.domain.entrepreneurs;
 
+import com.vocaltech.api.domain.companies.ICompanyRepository;
+import com.vocaltech.api.domain.leads.ILeadRepository;
 import com.vocaltech.api.domain.leads.Lead;
 import com.vocaltech.api.domain.products.IProductRepository;
 import com.vocaltech.api.domain.products.Product;
@@ -16,10 +18,14 @@ public class EntrepreneurService {
 
     private final IEntrepreneurRepository entrepreneurRepository;
     private final IProductRepository productRepository;
+    private final ILeadRepository leadRepository;
+    private final ICompanyRepository companyRepository;
 
-    public EntrepreneurService(IEntrepreneurRepository entrepreneurRepository, IProductRepository productRepository) {
+    public EntrepreneurService(IEntrepreneurRepository entrepreneurRepository, IProductRepository productRepository, ILeadRepository leadRepository, ICompanyRepository companyRepository) {
         this.entrepreneurRepository = entrepreneurRepository;
         this.productRepository = productRepository;
+        this.leadRepository = leadRepository;
+        this.companyRepository = companyRepository;
     }
 
     public Set<Product> getProductsFromNames(List<String> productNames) {
@@ -41,7 +47,26 @@ public class EntrepreneurService {
     }
 
 
-    public Entrepreneur createEntrepreneur(EntrepreneurRequestDTO requestDTO) {
+    public Entrepreneur createEntrepreneur(EntrepreneurRequestDTO requestDTO, UUID leadId) {
+        Lead lead = null;
+
+        if (leadId != null) {
+            lead = leadRepository.findById(leadId)
+                    .orElseThrow(() -> new EntityNotFoundException("Lead not found"));
+
+            // Verificar si el Lead ya está asociado como una Company
+            if (companyRepository.existsByLeadLeadId(leadId)) {
+                throw new IllegalStateException("This lead is already associated as a Company");
+            }
+
+            if (!lead.getSubscribed()) {
+                throw new IllegalStateException("Lead is already unsubscribed");
+            }
+
+            lead.setSubscribed(false);
+            leadRepository.save(lead);
+        }
+
         Entrepreneur entrepreneur = new Entrepreneur();
         entrepreneur.setName(requestDTO.name());
         entrepreneur.setEmail(requestDTO.email());
@@ -53,6 +78,7 @@ public class EntrepreneurService {
         entrepreneur.setHireJunior(requestDTO.hireJunior());
         entrepreneur.setMoreInfo(requestDTO.moreInfo());
         entrepreneur.setActive(true);
+        entrepreneur.setLead(lead);
 
         Set<Product> products = getProductsFromNames(requestDTO.products());
 

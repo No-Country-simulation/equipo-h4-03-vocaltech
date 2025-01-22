@@ -7,4 +7,5 @@ import java.util.UUID;
 
 public interface ICompanyRepository extends JpaRepository<Company, UUID> {
     List<Company> findByActiveTrue();
+    boolean existsByLeadLeadId(UUID leadId);
 }

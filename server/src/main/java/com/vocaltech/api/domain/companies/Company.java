@@ -1,6 +1,7 @@
 package com.vocaltech.api.domain.companies;
 
 
+import com.vocaltech.api.domain.leads.Lead;
 import com.vocaltech.api.domain.products.Product;
 import jakarta.persistence.*;
 import lombok.*;
@@ -80,6 +81,10 @@ public class Company {
             inverseJoinColumns = @JoinColumn(name = "product_id")
     )
     private List<Product> products = new ArrayList<>();
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lead_id", nullable = true)
+    private Lead lead;
 
     @Column(name = "creation_date", updatable = false)
     private LocalDateTime creationDate;
