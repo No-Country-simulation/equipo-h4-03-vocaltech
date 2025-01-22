@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/entrepreneurs")
-@SecurityRequirement(name = "bearer-key")
 public class EntrepreneurController {
 
     private final EntrepreneurService entrepreneurService;
@@ -46,6 +45,7 @@ public class EntrepreneurController {
 
     // Obtener todos los emprendedores
     @GetMapping
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<List<EntrepreneurResponseDTO>> getAllEntrepreneurs() {
         try {
             List<EntrepreneurResponseDTO> entrepreneurs = entrepreneurService.getActiveEntrepreneurs()
@@ -60,6 +60,7 @@ public class EntrepreneurController {
 
     // Obtener un emprendedor por ID
     @GetMapping("/{id}")
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<EntrepreneurResponseDTO> getEntrepreneurById(@PathVariable UUID id) {
         Entrepreneur entrepreneur = entrepreneurService.getEntrepreneurById(id);
         return ResponseEntity.ok(EntrepreneurResponseDTO.fromEntity(entrepreneur));
@@ -74,8 +75,15 @@ public class EntrepreneurController {
         return ResponseEntity.ok(EntrepreneurResponseDTO.fromEntity(updated));
     }
 
+    @PatchMapping("/{id}/unsubscribe")
+    public ResponseEntity<String> unsubscribeLead(@PathVariable UUID id) {
+        entrepreneurService.unsubscribe(id);
+        return ResponseEntity.ok("You have been unsubscribed successfully.");
+    }
+
     // Eliminar un emprendedor
     @DeleteMapping("/{id}")
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<Void> deleteEntrepreneur(@PathVariable UUID id) {
         entrepreneurService.deleteEntrepreneur(id);
         return ResponseEntity.noContent().build();

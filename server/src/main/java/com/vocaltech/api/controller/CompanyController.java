@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/companies")
-@SecurityRequirement(name = "bearer-key")
 public class CompanyController {
 
     private final CompanyService companyService;
@@ -45,6 +44,7 @@ public class CompanyController {
 
     // Obtener todas las empresas
     @GetMapping
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<List<CompanyResponseDTO>> getAllCompanies() {
         try {
             List<CompanyResponseDTO> companies = companyService.getActiveCompanies()
@@ -59,6 +59,7 @@ public class CompanyController {
 
     // Obtener un emprendedor por ID
     @GetMapping("/{id}")
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<CompanyResponseDTO> getCompanyById(@PathVariable UUID id) {
         Company company = companyService.getCompanyById(id);
         return ResponseEntity.ok(CompanyResponseDTO.fromEntity(company));
@@ -73,8 +74,15 @@ public class CompanyController {
         return ResponseEntity.ok(CompanyResponseDTO.fromEntity(updated));
     }
 
+    @PatchMapping("/{id}/unsubscribe")
+    public ResponseEntity<String> unsubscribeLead(@PathVariable UUID id) {
+        companyService.unsubscribe(id);
+        return ResponseEntity.ok("You have been unsubscribed successfully.");
+    }
+
     // Eliminar un emprendedor
     @DeleteMapping("/{id}")
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<Void> deleteEntrepreneur(@PathVariable UUID id) {
         companyService.deleteCompany(id);
         return ResponseEntity.noContent().build();
