@@ -2,6 +2,7 @@ package com.vocaltech.api.domain.companies;
 
 import com.vocaltech.api.domain.entrepreneurs.Entrepreneur;
 import com.vocaltech.api.domain.entrepreneurs.EntrepreneurRequestDTO;
+import com.vocaltech.api.domain.leads.Lead;
 import com.vocaltech.api.domain.products.IProductRepository;
 import com.vocaltech.api.domain.products.Product;
 import com.vocaltech.api.domain.products.ProductEnum;
@@ -134,6 +135,15 @@ public class CompanyService {
         }
 
         return companyRepository.save(company);
+    }
+
+    @Transient
+    public void unsubscribe(UUID id) {
+        Company company = companyRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Lead not found"));
+
+        company.setActive(false);
+        companyRepository.save(company);
     }
 
     @Transient

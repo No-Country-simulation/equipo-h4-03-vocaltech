@@ -29,4 +29,7 @@ public class Lead {
     @Column(name = "creation_date", nullable = false, updatable = false)
     @CreationTimestamp
     private LocalDateTime creationDate;
+
+    @Column(nullable = false)
+    private Boolean subscribed;
 }

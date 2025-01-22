@@ -1,9 +1,11 @@
 package com.vocaltech.api.domain.entrepreneurs;
 
+import com.vocaltech.api.domain.leads.Lead;
 import com.vocaltech.api.domain.products.IProductRepository;
 import com.vocaltech.api.domain.products.Product;
 import com.vocaltech.api.domain.products.ProductEnum;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.Transient;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -117,6 +119,15 @@ public class EntrepreneurService {
         }
 
         return entrepreneurRepository.save(entrepreneur);
+    }
+
+    @Transient
+    public void unsubscribe(UUID id) {
+        Entrepreneur entrepreneur = entrepreneurRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Lead not found"));
+
+        entrepreneur.setActive(false);
+        entrepreneurRepository.save(entrepreneur);
     }
 
 
