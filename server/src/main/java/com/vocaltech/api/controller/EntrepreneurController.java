@@ -28,8 +28,13 @@ public class EntrepreneurController {
 
     // Crear un emprendedor
     @PostMapping
-    public ResponseEntity<EntrepreneurResponseDTO> createEntrepreneur(@Valid @RequestBody EntrepreneurRequestDTO requestDTO) {
-        Entrepreneur entrepreneur = entrepreneurService.createEntrepreneur(requestDTO);
+    public ResponseEntity<EntrepreneurResponseDTO> createEntrepreneur(
+            @Valid
+            @RequestBody
+            EntrepreneurRequestDTO requestDTO,
+            @RequestParam(required = false) UUID leadId)
+    {
+        Entrepreneur entrepreneur = entrepreneurService.createEntrepreneur(requestDTO, leadId);
 
         // Crear la URL del recurso creado
         URI location = ServletUriComponentsBuilder

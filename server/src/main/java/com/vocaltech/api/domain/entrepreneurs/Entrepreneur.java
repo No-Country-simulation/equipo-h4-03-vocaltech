@@ -1,6 +1,7 @@
 package com.vocaltech.api.domain.entrepreneurs;
 
 
+import com.vocaltech.api.domain.leads.Lead;
 import com.vocaltech.api.domain.products.Product;
 import lombok.*;
 
@@ -72,8 +73,13 @@ public class Entrepreneur {
     )
     private List<Product> products = new ArrayList<>();
 
-    @Column(name = "interest_date")
-    private LocalDateTime interestDate;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lead_id", nullable = true)
+    private Lead lead;
+
+
+    @Column(name = "creation_date")
+    private LocalDateTime creationDate;
 
     }
 

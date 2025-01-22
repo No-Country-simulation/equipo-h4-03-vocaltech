@@ -2,6 +2,8 @@ package com.vocaltech.api.domain.companies;
 
 import com.vocaltech.api.domain.entrepreneurs.Entrepreneur;
 import com.vocaltech.api.domain.entrepreneurs.EntrepreneurRequestDTO;
+import com.vocaltech.api.domain.entrepreneurs.IEntrepreneurRepository;
+import com.vocaltech.api.domain.leads.ILeadRepository;
 import com.vocaltech.api.domain.leads.Lead;
 import com.vocaltech.api.domain.products.IProductRepository;
 import com.vocaltech.api.domain.products.Product;
@@ -17,10 +19,14 @@ import java.util.stream.Collectors;
 public class CompanyService {
     private final ICompanyRepository companyRepository;
     private final IProductRepository productRepository;
+    private final ILeadRepository leadRepository;
+    private final IEntrepreneurRepository entrepreneurRepository;
 
-    public CompanyService(ICompanyRepository companyRepository, IProductRepository productRepository) {
+    public CompanyService(ICompanyRepository companyRepository, IProductRepository productRepository, ILeadRepository leadRepository, IEntrepreneurRepository entrepreneurRepository) {
         this.companyRepository = companyRepository;
         this.productRepository = productRepository;
+        this.leadRepository = leadRepository;
+        this.entrepreneurRepository = entrepreneurRepository;
     }
 
     public Set<Product> getProductsFromNames(List<String> productNames) {
@@ -42,7 +48,26 @@ public class CompanyService {
     }
 
 
-    public Company createCompany(CompanyRequestDTO requestDTO) {
+    public Company createCompany(CompanyRequestDTO requestDTO, UUID leadId) {
+
+        Lead lead = null;
+
+        if (leadId != null) {
+            lead = leadRepository.findById(leadId)
+                    .orElseThrow(() -> new EntityNotFoundException("Lead not found"));
+
+            // Verificar si el Lead ya está asociado como una Company
+            if (entrepreneurRepository.existsByLeadLeadId(leadId)) {
+                throw new IllegalStateException("This lead is already associated as a Entrepreneur");
+            }
+
+            if (!lead.getSubscribed()) {
+                throw new IllegalStateException("Lead is already unsubscribed");
+            }
+
+            lead.setSubscribed(false);
+            leadRepository.save(lead);
+        }
 
         Company company = new Company();
 
@@ -59,6 +84,7 @@ public class CompanyService {
         company.setTalentProfile(requestDTO.talentProfile());
         company.setMoreInfo(requestDTO.moreInfo());
         company.setActive(true);
+        company.setLead(lead);
 
         Set<Product> products = getProductsFromNames(requestDTO.products());
 
