@@ -77,6 +77,11 @@ public class Entrepreneur {
     @JoinColumn(name = "lead_id", nullable = true)
     private Lead lead;
 
+    @Column(name = "pdf_url")
+    private String pdfUrl;
+
+    @Column(name = "audio_url")
+    private String audioUrl;
 
     @Column(name = "creation_date")
     private LocalDateTime creationDate;

@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
@@ -27,26 +29,36 @@ public class EntrepreneurController {
     }
 
     // Crear un emprendedor
-    @PostMapping
+    @PostMapping()
     public ResponseEntity<EntrepreneurResponseDTO> createEntrepreneur(
-            @Valid
-            @RequestBody
-            EntrepreneurRequestDTO requestDTO,
-            @RequestParam(required = false) UUID leadId)
-    {
-        Entrepreneur entrepreneur = entrepreneurService.createEntrepreneur(requestDTO, leadId);
+            @ModelAttribute EntrepreneurRequestDTO requestDTO,
+            @RequestParam(required = false) UUID leadId
+    ) {
+        try {
 
-        // Crear la URL del recurso creado
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(entrepreneur.getEntrepreneurId())
-                .toUri();
+            InputStream audioInputStream = requestDTO.audioFile().getInputStream();
 
-        // Devolver 201 Created con la ubicación del recurso
-        return ResponseEntity.created(location).body(EntrepreneurResponseDTO.fromEntity(entrepreneur));
+            Entrepreneur entrepreneur = entrepreneurService.createEntrepreneur(
+                    requestDTO,
+                    leadId,
+                    audioInputStream,
+                    requestDTO.audioFile().getOriginalFilename()
+            );
 
+            // Construir la URI del recurso creado
+            URI location = ServletUriComponentsBuilder
+                    .fromCurrentRequest()
+                    .path("/{id}")
+                    .buildAndExpand(entrepreneur.getEntrepreneurId())
+                    .toUri();
+
+            // Retornar la respuesta con 201 Created y el DTO del recurso creado
+            return ResponseEntity.created(location).body(EntrepreneurResponseDTO.fromEntity(entrepreneur));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
+
 
     // Obtener todos los emprendedores
     @GetMapping

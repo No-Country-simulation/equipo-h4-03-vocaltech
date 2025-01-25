@@ -3,6 +3,7 @@ package com.vocaltech.api.domain.companies;
 import com.vocaltech.api.domain.entrepreneurs.Entrepreneur;
 import com.vocaltech.api.domain.entrepreneurs.EntrepreneurRequestDTO;
 import jakarta.validation.constraints.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -43,6 +44,8 @@ public record CompanyRequestDTO(
         @NotEmpty(message = "Debe seleccionar al menos un servicio")
         List<String> products,
 
+        MultipartFile audioFile,
+
         Boolean active
 ) {
     // Si quieres manejar el valor por defecto en el DTO o en el constructor, podrías hacerlo aquí
@@ -68,6 +71,7 @@ public record CompanyRequestDTO(
                 dto.talentProfile(),
                 dto.moreInfo(),
                 dto.products(),
+                dto.audioFile(),
                 dto.active()
         );
     }

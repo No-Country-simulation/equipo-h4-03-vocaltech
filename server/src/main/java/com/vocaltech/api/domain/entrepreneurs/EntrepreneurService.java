@@ -6,10 +6,13 @@ import com.vocaltech.api.domain.leads.Lead;
 import com.vocaltech.api.domain.products.IProductRepository;
 import com.vocaltech.api.domain.products.Product;
 import com.vocaltech.api.domain.products.ProductEnum;
+import com.vocaltech.api.service.S3Service;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.Transient;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -20,15 +23,19 @@ public class EntrepreneurService {
     private final IProductRepository productRepository;
     private final ILeadRepository leadRepository;
     private final ICompanyRepository companyRepository;
+    private final S3Service s3Service;
 
-    public EntrepreneurService(IEntrepreneurRepository entrepreneurRepository, IProductRepository productRepository, ILeadRepository leadRepository, ICompanyRepository companyRepository) {
+    @Autowired
+    public EntrepreneurService(IEntrepreneurRepository entrepreneurRepository, IProductRepository productRepository, ILeadRepository leadRepository, ICompanyRepository companyRepository, com.vocaltech.api.service.S3Service s3Service, S3Service s3Service1) {
         this.entrepreneurRepository = entrepreneurRepository;
         this.productRepository = productRepository;
         this.leadRepository = leadRepository;
         this.companyRepository = companyRepository;
+        this.s3Service = s3Service1;
     }
 
-    public Set<Product> getProductsFromNames(List<String> productNames) {
+
+    private Set<Product> getProductsFromNames(List<String> productNames) {
         // Convertir nombres a IDs usando ProductEnum y cargar los servicios desde la base de datos
         Set<UUID> productsIds = productNames.stream()
                 .map(ProductEnum::fromName)  // Convierte el nombre al enum
@@ -46,15 +53,19 @@ public class EntrepreneurService {
         return products;
     }
 
-
-    public Entrepreneur createEntrepreneur(EntrepreneurRequestDTO requestDTO, UUID leadId) {
+    @Transactional
+    public Entrepreneur createEntrepreneur(
+            EntrepreneurRequestDTO requestDTO,
+            UUID leadId,
+            InputStream audioInputStream,
+            String audioFilename
+    ) {
         Lead lead = null;
 
         if (leadId != null) {
             lead = leadRepository.findById(leadId)
                     .orElseThrow(() -> new EntityNotFoundException("Lead not found"));
 
-            // Verificar si el Lead ya está asociado como una Company
             if (companyRepository.existsByLeadLeadId(leadId)) {
                 throw new IllegalStateException("This lead is already associated as a Company");
             }
@@ -66,6 +77,9 @@ public class EntrepreneurService {
             lead.setSubscribed(false);
             leadRepository.save(lead);
         }
+
+        // Subir archivos a S3
+        String audioUrl = s3Service.uploadFile("audios/", requestDTO.name() + audioFilename, audioInputStream, "audio/mpeg");
 
         Entrepreneur entrepreneur = new Entrepreneur();
         entrepreneur.setName(requestDTO.name());
@@ -81,13 +95,14 @@ public class EntrepreneurService {
         entrepreneur.setLead(lead);
 
         Set<Product> products = getProductsFromNames(requestDTO.products());
-
-       // Convertir Set a List antes de asignarlo
         entrepreneur.setProducts(new ArrayList<>(products));
 
-        // Guardar el emprendedor
+        // Asignar las URLs de los archivos
+        entrepreneur.setAudioUrl(audioUrl);
+
         return entrepreneurRepository.save(entrepreneur);
     }
+
 
 
 
@@ -104,6 +119,7 @@ public class EntrepreneurService {
                 .orElseThrow(() -> new RuntimeException("Entrepreneur not found with id: " + id));
     }
 
+    @Transactional
     public Entrepreneur updateEntrepreneur(UUID id, EntrepreneurRequestDTO requestDTO) {
         Entrepreneur entrepreneur = getEntrepreneurById(id);
 
@@ -147,7 +163,7 @@ public class EntrepreneurService {
         return entrepreneurRepository.save(entrepreneur);
     }
 
-    @Transient
+    @Transactional
     public void unsubscribe(UUID id) {
         Entrepreneur entrepreneur = entrepreneurRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Lead not found"));
@@ -157,6 +173,7 @@ public class EntrepreneurService {
     }
 
 
+    @Transactional
     public void deleteEntrepreneur(UUID id) {
         Entrepreneur entrepreneur = getEntrepreneurById(id);
         if (!entrepreneur.getActive()) {
