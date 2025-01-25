@@ -3,48 +3,47 @@ package com.vocaltech.api.service;
 import com.vocaltech.api.service.interfaces.IEmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import software.amazon.awssdk.services.ses.SesClient;
+import software.amazon.awssdk.services.ses.model.*;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 
 @Service
-public class EmailService implements IEmailService {
-    private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
-
-   @Value("${mail.username}")
-   private String emailUser;
-
+public class MailServices implements IEmailService {
+    public final SesClient sesClient;
+    public final TemplateEngine templateEngine;
     private final JavaMailSender javaMailSender;
 
     @Autowired
-    public EmailService(JavaMailSender javaMailSender) {
+    public MailServices(SesClient sesClient, TemplateEngine templateEngine, JavaMailSender javaMailSender) {
+        this.sesClient = sesClient;
+        this.templateEngine = templateEngine;
         this.javaMailSender = javaMailSender;
     }
 
+    @Value("${mail.username}")
+    private String emailUser;
 
     @Override
     public void sendEmail(String toUser, String subject, String message) {
+        SendEmailRequest emailRequest = SendEmailRequest.builder()
+                .destination(Destination.builder().toAddresses(toUser).build())
+                .message(Message.builder()
+                        .subject(Content.builder().data(subject).charset("UTF-8").build())
+                        .body(Body.builder().text(Content.builder().data(message).charset("UTF-8").build()).build())
+                        .build())
+                .source(emailUser)
+                .build();
 
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-
-        mailMessage.setFrom(emailUser);
-        mailMessage.setTo(toUser);
-        mailMessage.setSubject(subject);
-        mailMessage.setText(message);
-
-        javaMailSender.send(mailMessage);
-
-
+        sesClient.sendEmail(emailRequest);
     }
-
 
     @Override
     public void sendEmailWithFile(String toUser, String subject, String message, File file) {

@@ -4,6 +4,7 @@ import com.vocaltech.api.dto.request.email.EmailFiletDTO;
 import com.vocaltech.api.dto.request.email.EmailRequestDTO;
 import com.vocaltech.api.service.CloudinaryService;
 import com.vocaltech.api.service.EmailService;
+import com.vocaltech.api.service.MailServices;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -20,11 +21,13 @@ import java.io.File;
 public class EmailController {
 
     private final EmailService emailService;
+    private final MailServices mailService;
     private final CloudinaryService cloudinaryService;
 
     @Autowired
-    public EmailController(@Lazy EmailService emailService, @Lazy CloudinaryService cloudinaryService) {
+    public EmailController(@Lazy EmailService emailService, MailServices mailServices, @Lazy CloudinaryService cloudinaryService) {
         this.emailService = emailService;
+        this.mailService = mailServices;
         this.cloudinaryService = cloudinaryService;
     }
 
@@ -32,7 +35,7 @@ public class EmailController {
     public ResponseEntity<String> sendEmail(@RequestBody @Valid EmailRequestDTO emailRequest) {
         try {
             for (String recipient : emailRequest.toUser()) {
-                emailService.sendEmail(recipient, emailRequest.subject(), emailRequest.message());
+                mailService.sendEmail(recipient, emailRequest.subject(), emailRequest.message());
             }
             return ResponseEntity.ok("Emails sent successfully to " + emailRequest.toUser());
         } catch (Exception ex) {
