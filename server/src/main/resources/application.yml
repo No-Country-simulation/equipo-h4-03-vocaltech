@@ -34,11 +34,19 @@ spring:
   ai:
     openai:
       api-key: ${OPENAI_KEY}
+      base-url: https://api.openai.com/v1
       chat:
         enabled: true
         options:
-          model: gpt-4
-          temperature: 0.7
+          model: gpt-4o-mini
+          temperature: 0.9
+      audio:
+        transcription:
+          options:
+            model: whisper-1
+            response-format: text
+            language: es
+            temperature: 0.2
     vectorstore:
       pgvector:
         distance-type: COSINE_DISTANCE
