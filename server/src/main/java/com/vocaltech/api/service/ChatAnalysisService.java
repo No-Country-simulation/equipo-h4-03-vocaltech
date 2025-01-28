@@ -22,9 +22,11 @@ public class ChatAnalysisService {
 
     public String analyzeTranscription(String transcription) {
         // Crear un mensaje del sistema
-        SystemMessage systemMessage = new SystemMessage("Actúa como un analista experto en lenguaje natural.");
+        SystemMessage systemMessage = new SystemMessage("Actúa como un analista experto en lenguaje natural y comunicación interpersonal e institucional.");
         // Crear un mensaje del usuario
-        UserMessage userMessage = new UserMessage("Analiza este texto: " + transcription);
+        UserMessage userMessage = new UserMessage(
+                "Analiza este texto y realiza un diagnóstico sobre las problemásticas que se plantean y " +
+                        "que soluciones les puedes recomendar: " + transcription);
 
         // Construir el prompt de chat
         Prompt prompt = new Prompt(List.of(userMessage, systemMessage));

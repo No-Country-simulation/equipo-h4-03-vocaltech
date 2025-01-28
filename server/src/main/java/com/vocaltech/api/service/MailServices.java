@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.ses.model.*;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Service
 public class MailServices implements IEmailService {
@@ -46,7 +47,7 @@ public class MailServices implements IEmailService {
     }
 
     @Override
-    public void sendEmailWithFile(String toUser, String subject, String message, File file) {
+    public void sendEmailWithFiles(String toUser, String subject, String message, List<File> files) {
 
         try {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
@@ -57,8 +58,13 @@ public class MailServices implements IEmailService {
             mimeMessageHelper.setSubject(subject);
             mimeMessageHelper.setText(message, true);
 
-            if (file != null && file.exists()) {
-                mimeMessageHelper.addAttachment(file.getName(), file);
+            // Adjuntar múltiples archivos
+            if (files != null && !files.isEmpty()) {
+                for (File file : files) {
+                    if (file != null && file.exists()) {
+                        mimeMessageHelper.addAttachment(file.getName(), file);
+                    }
+                }
             }
 
             javaMailSender.send(mimeMessage);
