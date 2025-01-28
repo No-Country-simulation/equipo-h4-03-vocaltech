@@ -3,6 +3,7 @@ package com.vocaltech.api.service.interfaces;
 import org.springframework.scheduling.annotation.Async;
 
 import java.io.File;
+import java.util.List;
 
 public interface IEmailService {
 
@@ -10,6 +11,6 @@ public interface IEmailService {
     void sendEmail(String toUser, String subject, String message);
 
     @Async
-    void sendEmailWithFile(String toUser, String subject, String message, File file);
+    void sendEmailWithFiles(String toUser, String subject, String message, List<File> files);
 
 }

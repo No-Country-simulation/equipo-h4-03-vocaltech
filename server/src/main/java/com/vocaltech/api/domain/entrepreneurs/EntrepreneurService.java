@@ -30,9 +30,10 @@ public class EntrepreneurService {
     private final PdfGeneratorService pdfGeneratorService;
     private final QRCodeService qrCodeService;
     private final TranscriptionService transcriptionService;
+    private final MailServices mailServices;
 
     @Autowired
-    public EntrepreneurService(IEntrepreneurRepository entrepreneurRepository, IProductRepository productRepository, ILeadRepository leadRepository, ICompanyRepository companyRepository, com.vocaltech.api.service.S3Service s3Service, S3Service s3Service1, ChatAnalysisService chatAnalysisService, PdfGeneratorService pdfGeneratorService, QRCodeService qrCodeService, TranscriptionService transcriptionService) {
+    public EntrepreneurService(IEntrepreneurRepository entrepreneurRepository, IProductRepository productRepository, ILeadRepository leadRepository, ICompanyRepository companyRepository, com.vocaltech.api.service.S3Service s3Service, S3Service s3Service1, ChatAnalysisService chatAnalysisService, PdfGeneratorService pdfGeneratorService, QRCodeService qrCodeService, TranscriptionService transcriptionService, MailServices mailServices) {
         this.entrepreneurRepository = entrepreneurRepository;
         this.productRepository = productRepository;
         this.leadRepository = leadRepository;
@@ -42,6 +43,7 @@ public class EntrepreneurService {
         this.pdfGeneratorService = pdfGeneratorService;
         this.qrCodeService = qrCodeService;
         this.transcriptionService = transcriptionService;
+        this.mailServices = mailServices;
     }
 
 
@@ -62,6 +64,55 @@ public class EntrepreneurService {
 
         return products;
     }
+
+    private void sendDiagnosticEmail(String email, String analysis, File pdfFile, byte[] qrBytes, String qrFilename) {
+        // Crear archivo temporal para el QR
+        File qrFile = new File("src/main/java/com/vocaltech/api/tmp/" + qrFilename);
+
+        try (FileOutputStream fos = new FileOutputStream(qrFile)) {
+            fos.write(qrBytes);
+
+
+        // Mensaje del correo
+        String message = "Hola,\n\n" +
+                "Gracias por completar el diagnóstico. Aquí tienes los resultados adjuntos:\n\n" +
+                "Análisis: " + analysis + "\n\n" +
+                "Saludos,\nEl equipo de VocalTech";
+
+        // Crear la lista de archivos adjuntos
+        List<File> attachments = List.of(pdfFile, qrFile);
+
+        // Enviar correo
+        mailServices.sendEmailWithFiles(
+                email,
+                "Diagnóstico Completo con Adjuntos",
+                message,
+                attachments
+        );
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to create temporary QR code file", e);
+        } finally {
+
+            // Eliminar archivos temporales
+            // Eliminar el archivo PDF
+            if (!pdfFile.delete()) {
+                // Si el archivo no se puede eliminar, loguea un mensaje de advertencia
+                System.out.println("No se pudo eliminar el archivo PDF: " + pdfFile.getAbsolutePath());
+            } else {
+                System.out.println("Archivo PDF eliminado correctamente.");
+            }
+
+
+// Eliminar el archivo QR
+            if (!qrFile.delete()) {
+                // Si el archivo no se puede eliminar, loguea un mensaje de advertencia
+                System.out.println("No se pudo eliminar el archivo QR: " + qrFile.getAbsolutePath());
+            } else {
+                System.out.println("Archivo QR eliminado correctamente.");
+            }
+        }
+    }
+
 
     @Transactional
     public Entrepreneur createEntrepreneur(
@@ -94,10 +145,13 @@ public class EntrepreneurService {
 
 
         // Transcribir audio (utiliza un servicio de transcripción)
-        String transcription = transcriptionService.transcribeAudio(audioResource);
+        //String transcription = transcriptionService.transcribeAudio(audioResource);
+        String transcription ="No funciona OpenAI";
 
-        // Analizar transcripción
-        String analysis = chatAnalysisService.analyzeTranscription(transcription);
+
+                // Analizar transcripción
+        //String analysis = chatAnalysisService.analyzeTranscription(transcription);
+        String analysis ="Esta es una prueba porque OpenAI no responde aún, esperemos que pronto este solucionado como asi tambien todos los problemas de comunicacion de vocaltech h4-3";
 
         String pdfFilename = requestDTO.name() + "-diagnosis.pdf";
 
@@ -108,11 +162,19 @@ public class EntrepreneurService {
         String qrUrl = s3Service.uploadFile("qrcodes/", qrFilename, new ByteArrayInputStream(qrBytes), "image/png");
 
         // Crear PDF
-        String pdfPath = "/tmp/" + pdfFilename; // Ruta temporal para crear el PDF
-        pdfGeneratorService.generatePdf(pdfPath, analysis, requestDTO.name(), "/tmp/" + qrFilename);
+        String pdfPath = "src/main/java/com/vocaltech/api/tmp/" + pdfFilename; // Ruta temporal para crear el PDF
+
+        try {
+            pdfGeneratorService.generatePdf(pdfPath, analysis, requestDTO.name(), qrBytes);
+        } catch (IOException e) {
+            throw new RuntimeException("Error al generar el PDF", e);
+        }
 
         // Subir PDF a S3
         File pdfFile = new File(pdfPath);
+        if (!pdfFile.exists() || pdfFile.length() == 0) {
+            throw new RuntimeException("El archivo PDF no se generó correctamente");
+        }
         String pdfUrl = s3Service.uploadFile("diagnostics/", pdfFilename, new FileInputStream(pdfFile), "application/pdf");
 
 
@@ -138,6 +200,9 @@ public class EntrepreneurService {
         entrepreneur.setAnalysis(analysis);
         entrepreneur.setDiagnosisPdfUrl(pdfUrl);
         entrepreneur.setQrCodeUrl(qrUrl);
+
+        // **Enviar correo con los archivos adjuntos**
+        sendDiagnosticEmail(requestDTO.email(), analysis, pdfFile, qrBytes, qrFilename);
 
         return entrepreneurRepository.save(entrepreneur);
     }
