@@ -1,18 +1,20 @@
 package com.vocaltech.api.domain.entrepreneurs;
 
+import com.google.zxing.WriterException;
 import com.vocaltech.api.domain.companies.ICompanyRepository;
 import com.vocaltech.api.domain.leads.ILeadRepository;
 import com.vocaltech.api.domain.leads.Lead;
 import com.vocaltech.api.domain.products.IProductRepository;
 import com.vocaltech.api.domain.products.Product;
 import com.vocaltech.api.domain.products.ProductEnum;
-import com.vocaltech.api.service.S3Service;
+import com.vocaltech.api.service.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,14 +26,22 @@ public class EntrepreneurService {
     private final ILeadRepository leadRepository;
     private final ICompanyRepository companyRepository;
     private final S3Service s3Service;
+    private final ChatAnalysisService chatAnalysisService;
+    private final PdfGeneratorService pdfGeneratorService;
+    private final QRCodeService qrCodeService;
+    private final TranscriptionService transcriptionService;
 
     @Autowired
-    public EntrepreneurService(IEntrepreneurRepository entrepreneurRepository, IProductRepository productRepository, ILeadRepository leadRepository, ICompanyRepository companyRepository, com.vocaltech.api.service.S3Service s3Service, S3Service s3Service1) {
+    public EntrepreneurService(IEntrepreneurRepository entrepreneurRepository, IProductRepository productRepository, ILeadRepository leadRepository, ICompanyRepository companyRepository, com.vocaltech.api.service.S3Service s3Service, S3Service s3Service1, ChatAnalysisService chatAnalysisService, PdfGeneratorService pdfGeneratorService, QRCodeService qrCodeService, TranscriptionService transcriptionService) {
         this.entrepreneurRepository = entrepreneurRepository;
         this.productRepository = productRepository;
         this.leadRepository = leadRepository;
         this.companyRepository = companyRepository;
         this.s3Service = s3Service1;
+        this.chatAnalysisService = chatAnalysisService;
+        this.pdfGeneratorService = pdfGeneratorService;
+        this.qrCodeService = qrCodeService;
+        this.transcriptionService = transcriptionService;
     }
 
 
@@ -58,8 +68,9 @@ public class EntrepreneurService {
             EntrepreneurRequestDTO requestDTO,
             UUID leadId,
             InputStream audioInputStream,
+            Resource audioResource,
             String audioFilename
-    ) {
+    ) throws IOException, WriterException {
         Lead lead = null;
 
         if (leadId != null) {
@@ -79,7 +90,31 @@ public class EntrepreneurService {
         }
 
         // Subir archivos a S3
-        String audioUrl = s3Service.uploadFile("audios/", requestDTO.name() + audioFilename, audioInputStream, "audio/mpeg");
+        String audioUrl = s3Service.uploadFile("audios/", requestDTO.name() +"-"+ audioFilename, audioInputStream, "audio/mpeg");
+
+
+        // Transcribir audio (utiliza un servicio de transcripción)
+        String transcription = transcriptionService.transcribeAudio(audioResource);
+
+        // Analizar transcripción
+        String analysis = chatAnalysisService.analyzeTranscription(transcription);
+
+        String pdfFilename = requestDTO.name() + "-diagnosis.pdf";
+
+        // Generar código QR
+        String qrContent = "https://vocaltech.bucket.s3.amazonaws.com/diagnostics/" + pdfFilename; // URL del diagnóstico
+        byte[] qrBytes = qrCodeService.generateQRCode(qrContent);
+        String qrFilename = requestDTO.name() + "-qr.png";
+        String qrUrl = s3Service.uploadFile("qrcodes/", qrFilename, new ByteArrayInputStream(qrBytes), "image/png");
+
+        // Crear PDF
+        String pdfPath = "/tmp/" + pdfFilename; // Ruta temporal para crear el PDF
+        pdfGeneratorService.generatePdf(pdfPath, analysis, requestDTO.name(), "/tmp/" + qrFilename);
+
+        // Subir PDF a S3
+        File pdfFile = new File(pdfPath);
+        String pdfUrl = s3Service.uploadFile("diagnostics/", pdfFilename, new FileInputStream(pdfFile), "application/pdf");
+
 
         Entrepreneur entrepreneur = new Entrepreneur();
         entrepreneur.setName(requestDTO.name());
@@ -99,6 +134,10 @@ public class EntrepreneurService {
 
         // Asignar las URLs de los archivos
         entrepreneur.setAudioUrl(audioUrl);
+        entrepreneur.setTranscription(transcription);
+        entrepreneur.setAnalysis(analysis);
+        entrepreneur.setDiagnosisPdfUrl(pdfUrl);
+        entrepreneur.setQrCodeUrl(qrUrl);
 
         return entrepreneurRepository.save(entrepreneur);
     }

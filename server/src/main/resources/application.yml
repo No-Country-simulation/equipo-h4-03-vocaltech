@@ -34,7 +34,7 @@ spring:
   ai:
     openai:
       api-key: ${OPENAI_KEY}
-      base-url: https://api.openai.com/v1
+      base-url: https://api.openai.com
       chat:
         enabled: true
         options:
@@ -84,8 +84,8 @@ server:
     include-message: always
   servlet:
     multipart:
-      max-file-size: 50MB
-      max-request-size: 50MB
+      max-file-size: 25MB
+      max-request-size: 25MB
 
 
 frontend:
@@ -98,3 +98,5 @@ logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.ai: TRACE
+    org.springframework.web.client: DEBUG

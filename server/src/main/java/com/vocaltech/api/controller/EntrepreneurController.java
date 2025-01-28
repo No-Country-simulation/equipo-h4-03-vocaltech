@@ -1,11 +1,14 @@
 package com.vocaltech.api.controller;
 
+import com.google.zxing.WriterException;
 import com.vocaltech.api.domain.entrepreneurs.EntrepreneurRequestDTO;
 import com.vocaltech.api.domain.entrepreneurs.EntrepreneurResponseDTO;
 import com.vocaltech.api.domain.entrepreneurs.Entrepreneur;
 import com.vocaltech.api.domain.entrepreneurs.EntrepreneurService;
+import com.vocaltech.api.service.TranscriptionService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,9 +26,11 @@ import java.util.stream.Collectors;
 public class EntrepreneurController {
 
     private final EntrepreneurService entrepreneurService;
+    private final TranscriptionService transcriptionService;
 
-    public EntrepreneurController(EntrepreneurService entrepreneurService) {
+    public EntrepreneurController(EntrepreneurService entrepreneurService, TranscriptionService transcriptionService) {
         this.entrepreneurService = entrepreneurService;
+        this.transcriptionService = transcriptionService;
     }
 
     // Crear un emprendedor
@@ -36,12 +41,15 @@ public class EntrepreneurController {
     ) {
         try {
 
+            Resource audioResource = requestDTO.audioFile().getResource();
+
             InputStream audioInputStream = requestDTO.audioFile().getInputStream();
 
             Entrepreneur entrepreneur = entrepreneurService.createEntrepreneur(
                     requestDTO,
                     leadId,
                     audioInputStream,
+                    audioResource,
                     requestDTO.audioFile().getOriginalFilename()
             );
 
@@ -56,6 +64,8 @@ public class EntrepreneurController {
             return ResponseEntity.created(location).body(EntrepreneurResponseDTO.fromEntity(entrepreneur));
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        } catch (WriterException e) {
+            throw new RuntimeException(e);
         }
     }
 
