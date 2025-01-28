@@ -23,7 +23,8 @@ public record CompanyResponseDTO(
         Boolean hireJunior,
         List<String> talentProfile,
         Boolean moreInfo,
-        Set<ProductResponseDTO> products
+        Set<ProductResponseDTO> products,
+        String audioUrl
 ) {
     public static CompanyResponseDTO fromEntity(Company company) {
         return new CompanyResponseDTO(
@@ -43,7 +44,8 @@ public record CompanyResponseDTO(
                 company.getProducts()
                         .stream()
                         .map(ProductResponseDTO::new)
-                        .collect(Collectors.toSet())
+                        .collect(Collectors.toSet()),
+                company.getAudioUrl()
         );
 
     }

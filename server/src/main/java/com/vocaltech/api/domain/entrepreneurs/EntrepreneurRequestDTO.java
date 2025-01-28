@@ -1,6 +1,7 @@
 package com.vocaltech.api.domain.entrepreneurs;
 
 import jakarta.validation.constraints.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -35,6 +36,8 @@ public record EntrepreneurRequestDTO(
         @NotEmpty(message = "Debe seleccionar al menos un servicio")
         List<String> products,
 
+        MultipartFile audioFile,
+
         Boolean active
 ) {
 
@@ -58,6 +61,7 @@ public record EntrepreneurRequestDTO(
                 dto.hireJunior(),
                 dto.moreInfo(),
                 dto.products(),
+                dto.audioFile(),
                 dto.active()
         );
     }

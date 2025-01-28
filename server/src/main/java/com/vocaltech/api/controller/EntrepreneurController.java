@@ -1,16 +1,21 @@
 package com.vocaltech.api.controller;
 
+import com.google.zxing.WriterException;
 import com.vocaltech.api.domain.entrepreneurs.EntrepreneurRequestDTO;
 import com.vocaltech.api.domain.entrepreneurs.EntrepreneurResponseDTO;
 import com.vocaltech.api.domain.entrepreneurs.Entrepreneur;
 import com.vocaltech.api.domain.entrepreneurs.EntrepreneurService;
+import com.vocaltech.api.service.TranscriptionService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
@@ -21,32 +26,49 @@ import java.util.stream.Collectors;
 public class EntrepreneurController {
 
     private final EntrepreneurService entrepreneurService;
+    private final TranscriptionService transcriptionService;
 
-    public EntrepreneurController(EntrepreneurService entrepreneurService) {
+    public EntrepreneurController(EntrepreneurService entrepreneurService, TranscriptionService transcriptionService) {
         this.entrepreneurService = entrepreneurService;
+        this.transcriptionService = transcriptionService;
     }
 
     // Crear un emprendedor
-    @PostMapping
+    @PostMapping()
     public ResponseEntity<EntrepreneurResponseDTO> createEntrepreneur(
-            @Valid
-            @RequestBody
-            EntrepreneurRequestDTO requestDTO,
-            @RequestParam(required = false) UUID leadId)
-    {
-        Entrepreneur entrepreneur = entrepreneurService.createEntrepreneur(requestDTO, leadId);
+            @ModelAttribute EntrepreneurRequestDTO requestDTO,
+            @RequestParam(required = false) UUID leadId
+    ) {
+        try {
 
-        // Crear la URL del recurso creado
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(entrepreneur.getEntrepreneurId())
-                .toUri();
+            Resource audioResource = requestDTO.audioFile().getResource();
 
-        // Devolver 201 Created con la ubicación del recurso
-        return ResponseEntity.created(location).body(EntrepreneurResponseDTO.fromEntity(entrepreneur));
+            InputStream audioInputStream = requestDTO.audioFile().getInputStream();
 
+            Entrepreneur entrepreneur = entrepreneurService.createEntrepreneur(
+                    requestDTO,
+                    leadId,
+                    audioInputStream,
+                    audioResource,
+                    requestDTO.audioFile().getOriginalFilename()
+            );
+
+            // Construir la URI del recurso creado
+            URI location = ServletUriComponentsBuilder
+                    .fromCurrentRequest()
+                    .path("/{id}")
+                    .buildAndExpand(entrepreneur.getEntrepreneurId())
+                    .toUri();
+
+            // Retornar la respuesta con 201 Created y el DTO del recurso creado
+            return ResponseEntity.created(location).body(EntrepreneurResponseDTO.fromEntity(entrepreneur));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        } catch (WriterException e) {
+            throw new RuntimeException(e);
+        }
     }
+
 
     // Obtener todos los emprendedores
     @GetMapping

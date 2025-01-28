@@ -1,17 +1,19 @@
 package com.vocaltech.api.domain.companies;
 
-import com.vocaltech.api.domain.entrepreneurs.Entrepreneur;
-import com.vocaltech.api.domain.entrepreneurs.EntrepreneurRequestDTO;
+
 import com.vocaltech.api.domain.entrepreneurs.IEntrepreneurRepository;
 import com.vocaltech.api.domain.leads.ILeadRepository;
 import com.vocaltech.api.domain.leads.Lead;
 import com.vocaltech.api.domain.products.IProductRepository;
 import com.vocaltech.api.domain.products.Product;
 import com.vocaltech.api.domain.products.ProductEnum;
+import com.vocaltech.api.service.S3Service;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.Transient;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,12 +23,15 @@ public class CompanyService {
     private final IProductRepository productRepository;
     private final ILeadRepository leadRepository;
     private final IEntrepreneurRepository entrepreneurRepository;
+    private final S3Service s3Service;
 
-    public CompanyService(ICompanyRepository companyRepository, IProductRepository productRepository, ILeadRepository leadRepository, IEntrepreneurRepository entrepreneurRepository) {
+    @Autowired
+    public CompanyService(ICompanyRepository companyRepository, IProductRepository productRepository, ILeadRepository leadRepository, IEntrepreneurRepository entrepreneurRepository, S3Service s3Service) {
         this.companyRepository = companyRepository;
         this.productRepository = productRepository;
         this.leadRepository = leadRepository;
         this.entrepreneurRepository = entrepreneurRepository;
+        this.s3Service = s3Service;
     }
 
     public Set<Product> getProductsFromNames(List<String> productNames) {
@@ -48,7 +53,13 @@ public class CompanyService {
     }
 
 
-    public Company createCompany(CompanyRequestDTO requestDTO, UUID leadId) {
+    @Transactional
+    public Company createCompany(
+            CompanyRequestDTO requestDTO,
+            UUID leadId,
+            InputStream audioInputStream,
+            String audioFilename
+    ) {
 
         Lead lead = null;
 
@@ -68,6 +79,9 @@ public class CompanyService {
             lead.setSubscribed(false);
             leadRepository.save(lead);
         }
+
+        // Subir archivos a S3
+        String audioUrl = s3Service.uploadFile("audios/", requestDTO.companyName() + audioFilename , audioInputStream, "audio/mpeg");
 
         Company company = new Company();
 
@@ -91,7 +105,9 @@ public class CompanyService {
         // Convertir Set a List antes de asignarlo
         company.setProducts(new ArrayList<>(products));
 
-        // Guardar el emprendedor
+        // Asignar las URLs de los archivos
+        company.setAudioUrl(audioUrl);
+
         return companyRepository.save(company);
     }
 
@@ -109,7 +125,7 @@ public class CompanyService {
                 .orElseThrow(() -> new RuntimeException("Company not found with id: " + id));
     }
 
-    @Transient
+    @Transactional
     public Company updateCompany(UUID id, CompanyRequestDTO requestDTO) {
         Company company = getCompanyById(id);
 
@@ -163,7 +179,7 @@ public class CompanyService {
         return companyRepository.save(company);
     }
 
-    @Transient
+    @Transactional
     public void unsubscribe(UUID id) {
         Company company = companyRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Lead not found"));
@@ -172,7 +188,7 @@ public class CompanyService {
         companyRepository.save(company);
     }
 
-    @Transient
+    @Transactional
     public void deleteCompany(UUID id) {
         Company company = getCompanyById(id);
         if (!company.getActive()) {

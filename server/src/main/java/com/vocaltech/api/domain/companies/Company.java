@@ -86,6 +86,12 @@ public class Company {
     @JoinColumn(name = "lead_id", nullable = true)
     private Lead lead;
 
+    @Column(name = "pdf_url")
+    private String pdfUrl;
+
+    @Column(name = "audio_url")
+    private String audioUrl;
+
     @Column(name = "creation_date", updatable = false)
     private LocalDateTime creationDate;
 

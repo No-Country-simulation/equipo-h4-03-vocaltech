@@ -77,8 +77,22 @@ public class Entrepreneur {
     @JoinColumn(name = "lead_id", nullable = true)
     private Lead lead;
 
+    @Column(updatable = false)
+    private String audioUrl;
 
-    @Column(name = "creation_date")
+    @Column(updatable = false)
+    private String transcription;
+
+    @Column(updatable = false)
+    private String analysis;
+
+    @Column(updatable = false)
+    private String diagnosisPdfUrl;
+
+    @Column(updatable = false)
+    private String qrCodeUrl;
+
+    @Column(name = "creation_date", updatable = false)
     private LocalDateTime creationDate;
 
     }

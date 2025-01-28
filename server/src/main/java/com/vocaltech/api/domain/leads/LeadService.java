@@ -1,7 +1,7 @@
 package com.vocaltech.api.domain.leads;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.Transient;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -41,7 +41,7 @@ public class LeadService {
                 .orElseThrow(() -> new EntityNotFoundException("Lead not found with ID: " + id));
     }
 
-    @Transient
+    @Transactional
     public void unsubscribe(UUID id) {
         Lead lead = leadRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Lead not found"));

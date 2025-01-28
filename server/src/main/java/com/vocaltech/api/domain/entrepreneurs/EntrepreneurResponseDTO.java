@@ -17,7 +17,13 @@ public record EntrepreneurResponseDTO(
         Entrepreneur.ProductToDevelop productToDevelop,
         Boolean hireJunior,
         Boolean moreInfo,
-        Set<ProductResponseDTO> products
+        Set<ProductResponseDTO> products,
+        String audioUrl,
+        String transcription,
+        String analysis,
+        String diagnosisPdfUrl,
+        String qrCodeUrl
+
 ) {
 
        public static EntrepreneurResponseDTO fromEntity(Entrepreneur entrepreneur) {
@@ -35,7 +41,13 @@ public record EntrepreneurResponseDTO(
                 entrepreneur.getProducts()
                         .stream()
                         .map(ProductResponseDTO::new)
-                        .collect(Collectors.toSet())
+                        .collect(Collectors.toSet()),
+                entrepreneur.getAudioUrl(),
+                entrepreneur.getTranscription(),
+                entrepreneur.getAnalysis(),
+                entrepreneur.getDiagnosisPdfUrl(),
+                entrepreneur.getQrCodeUrl()
+
         );
 
     }

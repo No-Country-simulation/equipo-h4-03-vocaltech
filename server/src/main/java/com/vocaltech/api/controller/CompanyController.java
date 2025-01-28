@@ -4,12 +4,18 @@ import com.vocaltech.api.domain.companies.Company;
 import com.vocaltech.api.domain.companies.CompanyRequestDTO;
 import com.vocaltech.api.domain.companies.CompanyResponseDTO;
 import com.vocaltech.api.domain.companies.CompanyService;
+import com.vocaltech.api.domain.entrepreneurs.Entrepreneur;
+import com.vocaltech.api.domain.entrepreneurs.EntrepreneurRequestDTO;
+import com.vocaltech.api.domain.entrepreneurs.EntrepreneurResponseDTO;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
@@ -26,25 +32,34 @@ public class CompanyController {
     }
 
     // Crear una empresa
-    @PostMapping
-    public ResponseEntity<CompanyResponseDTO> createCompany(
-            @Valid
-            @RequestBody
-            CompanyRequestDTO requestDTO,
-            @RequestParam(required = false) UUID leadId)
-    {
-        Company company = companyService.createCompany(requestDTO, leadId);
+    @PostMapping()
+    public ResponseEntity<CompanyResponseDTO> createEntrepreneur(
+            @ModelAttribute CompanyRequestDTO requestDTO,
+            @RequestParam(required = false) UUID leadId
+    ) {
+        try {
 
-        // Crear la URL del recurso creado
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(company.getCompanyId())
-                .toUri();
+            InputStream audioInputStream = requestDTO.audioFile().getInputStream();
 
-        // Devolver 201 Created con la ubicación del recurso
-        return ResponseEntity.created(location).body(CompanyResponseDTO.fromEntity(company));
+            Company company = companyService.createCompany(
+                    requestDTO,
+                    leadId,
+                    audioInputStream,
+                    requestDTO.audioFile().getOriginalFilename()
+            );
 
+            // Construir la URI del recurso creado
+            URI location = ServletUriComponentsBuilder
+                    .fromCurrentRequest()
+                    .path("/{id}")
+                    .buildAndExpand(company.getCompanyId())
+                    .toUri();
+
+            // Retornar la respuesta con 201 Created y el DTO del recurso creado
+            return ResponseEntity.created(location).body(CompanyResponseDTO.fromEntity(company));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     // Obtener todas las empresas

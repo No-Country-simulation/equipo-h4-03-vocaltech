@@ -16,26 +16,37 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     database: postgresql
 
+#  mail:
+#    host: smtp.gmail.com
+#    port: 587
+#    username: ${MAIL_USERNAME}
+#    password: ${MAIL_PASSWORD}
+#    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          starttls:
+#            enable: true
+#            timeout: 5000
   mail:
-    host: smtp.gmail.com
-    port: 587
     username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-            timeout: 5000
+
   ai:
     openai:
       api-key: ${OPENAI_KEY}
+      base-url: https://api.openai.com
       chat:
         enabled: true
         options:
-          model: gpt-4
-          temperature: 0.7
+          model: gpt-4o-mini
+          temperature: 0.9
+      audio:
+        transcription:
+          options:
+            model: whisper-1
+            response-format: text
+            language: es
+            temperature: 0.2
     vectorstore:
       pgvector:
         distance-type: COSINE_DISTANCE
@@ -54,6 +65,12 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
+aws:
+  accessKeyId: ${AWS_ACCESS_KEY_ID}
+  secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
+  region: ${AWS_REGION}
+  s3:
+    bucket-name: "${AWS_S3_BUCKET_NAME}"
 
 cloudinary:
   name: ${CLOUDINARY_NAME}
@@ -67,8 +84,8 @@ server:
     include-message: always
   servlet:
     multipart:
-      max-file-size: 50MB
-      max-request-size: 50MB
+      max-file-size: 25MB
+      max-request-size: 25MB
 
 
 frontend:
@@ -81,3 +98,5 @@ logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.ai: TRACE
+    org.springframework.web.client: DEBUG
