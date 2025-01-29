@@ -7,7 +7,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public record EntrepreneurResponseDTO(
-        UUID id,
         String name,
         String email,
         String phone,
@@ -18,17 +17,16 @@ public record EntrepreneurResponseDTO(
         Boolean hireJunior,
         Boolean moreInfo,
         Set<ProductResponseDTO> products,
-        String audioUrl,
+        String audioKey,
         String transcription,
         String analysis,
-        String diagnosisPdfUrl,
-        String qrCodeUrl
+        String diagnosisPdfKey,
+        String qrCodeKey
 
 ) {
 
        public static EntrepreneurResponseDTO fromEntity(Entrepreneur entrepreneur) {
         return new EntrepreneurResponseDTO(
-                entrepreneur.getEntrepreneurId(),
                 entrepreneur.getName(),
                 entrepreneur.getEmail(),
                 entrepreneur.getPhone(),
@@ -42,11 +40,11 @@ public record EntrepreneurResponseDTO(
                         .stream()
                         .map(ProductResponseDTO::new)
                         .collect(Collectors.toSet()),
-                entrepreneur.getAudioUrl(),
+                entrepreneur.getAudioKey(),
                 entrepreneur.getTranscription(),
                 entrepreneur.getAnalysis(),
-                entrepreneur.getDiagnosisPdfUrl(),
-                entrepreneur.getQrCodeUrl()
+                entrepreneur.getDiagnosisPdfKey(),
+                entrepreneur.getQrCodeKey()
 
         );
 

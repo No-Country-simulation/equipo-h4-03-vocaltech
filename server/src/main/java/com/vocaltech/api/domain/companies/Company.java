@@ -1,15 +1,14 @@
 package com.vocaltech.api.domain.companies;
 
 
-import com.vocaltech.api.domain.leads.Lead;
-import com.vocaltech.api.domain.products.Product;
+import com.vocaltech.api.domain.recipients.Recipient;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+
 
 @Getter
 @Setter
@@ -17,8 +16,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "companies")
-public class Company {
+@DiscriminatorValue("Company")
+public class Company extends Recipient {
 
     public enum CompanySize {
         SMALL, MEDIUM, LARGE
@@ -28,12 +27,7 @@ public class Company {
         INITIAL_IDEA, DEVELOPMENT_IN_PROGRESS, IT_IS_ALREADY_TESTED, I_DONT_HAVE_A_DEFINED_MVP
     }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "company_id")
-    private UUID companyId;
-
-    @Column(nullable = false)
+    @Column()
     private String companyName;
 
     @Column
@@ -43,56 +37,15 @@ public class Company {
     @Column
     private CompanySize size;
 
-    @Column
-    private String contactName;
-
-    @Column(nullable = false, unique = true)
-    private String contactEmail;
-
-    @Column
-    private String contactPhone;
-
-    @Column
-    private String description;
-
-    @Column
-    private Boolean MVP;
-
     @Enumerated(EnumType.STRING)
     @Column
     private DevelopmentStage developmentStage;
 
-    @Column
-    private Boolean hireJunior;
-
     @ElementCollection
     private List<String> talentProfile;
 
-    @Column
-    private Boolean moreInfo;
-
-    @Column
-    private Boolean active;
-
-    @ManyToMany
-    @JoinTable(
-            name = "company_product",
-            joinColumns = @JoinColumn(name = "company_id"),
-            inverseJoinColumns = @JoinColumn(name = "product_id")
-    )
-    private List<Product> products = new ArrayList<>();
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lead_id", nullable = true)
-    private Lead lead;
-
-    @Column(name = "pdf_url")
-    private String pdfUrl;
-
-    @Column(name = "audio_url")
-    private String audioUrl;
-
-    @Column(name = "creation_date", updatable = false)
-    private LocalDateTime creationDate;
+    @Column(name = "diagnosis_date", updatable = false)
+    @CreationTimestamp
+    private LocalDateTime diagnosisDate;
 
 }

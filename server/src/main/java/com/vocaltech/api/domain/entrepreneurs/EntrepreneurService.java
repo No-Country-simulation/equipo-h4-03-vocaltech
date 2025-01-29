@@ -7,6 +7,7 @@ import com.vocaltech.api.domain.leads.Lead;
 import com.vocaltech.api.domain.products.IProductRepository;
 import com.vocaltech.api.domain.products.Product;
 import com.vocaltech.api.domain.products.ProductEnum;
+import com.vocaltech.api.domain.recipients.IRecipientRepository;
 import com.vocaltech.api.service.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -33,10 +34,10 @@ public class EntrepreneurService {
     private final MailServices mailServices;
 
     @Autowired
-    public EntrepreneurService(IEntrepreneurRepository entrepreneurRepository, IProductRepository productRepository, ILeadRepository leadRepository, ICompanyRepository companyRepository, com.vocaltech.api.service.S3Service s3Service, S3Service s3Service1, ChatAnalysisService chatAnalysisService, PdfGeneratorService pdfGeneratorService, QRCodeService qrCodeService, TranscriptionService transcriptionService, MailServices mailServices) {
+    public EntrepreneurService(IEntrepreneurRepository entrepreneurRepository, IProductRepository productRepository, ILeadRepository leadRepository, ILeadRepository leadRepository1, ICompanyRepository companyRepository, com.vocaltech.api.service.S3Service s3Service, IRecipientRepository recipientRepository, S3Service s3Service1, ChatAnalysisService chatAnalysisService, PdfGeneratorService pdfGeneratorService, QRCodeService qrCodeService, TranscriptionService transcriptionService, MailServices mailServices) {
         this.entrepreneurRepository = entrepreneurRepository;
         this.productRepository = productRepository;
-        this.leadRepository = leadRepository;
+        this.leadRepository = leadRepository1;
         this.companyRepository = companyRepository;
         this.s3Service = s3Service1;
         this.chatAnalysisService = chatAnalysisService;
@@ -65,6 +66,31 @@ public class EntrepreneurService {
         return products;
     }
 
+    private void deleteTemporaryFiles(File pdfFile, File qrFile) {
+        if (!pdfFile.delete()) {
+            System.out.println("No se pudo eliminar el archivo PDF: " + pdfFile.getAbsolutePath());
+        } else {
+            System.out.println("Archivo PDF eliminado correctamente.");
+        }
+
+        if (!qrFile.delete()) {
+            System.out.println("No se pudo eliminar el archivo QR: " + qrFile.getAbsolutePath());
+        } else {
+            System.out.println("Archivo QR eliminado correctamente.");
+        }
+    }
+
+    private File generateAndUploadPdf(String name, String analysis, byte[] qrBytes, String pdfFilename) throws IOException {
+        String pdfPath = "src/main/java/com/vocaltech/api/tmp/" + pdfFilename;
+        pdfGeneratorService.generatePdf(pdfPath, analysis, name, qrBytes);
+        File pdfFile = new File(pdfPath);
+        if (!pdfFile.exists() || pdfFile.length() == 0) {
+            throw new RuntimeException("El archivo PDF no se generó correctamente");
+        }
+        s3Service.uploadFile("diagnostics/", pdfFilename, new FileInputStream(pdfFile), "application/pdf");
+        return pdfFile;
+    }
+
     private void sendDiagnosticEmail(String email, String analysis, File pdfFile, byte[] qrBytes, String qrFilename) {
         // Crear archivo temporal para el QR
         File qrFile = new File("src/main/java/com/vocaltech/api/tmp/" + qrFilename);
@@ -73,114 +99,54 @@ public class EntrepreneurService {
             fos.write(qrBytes);
 
 
-        // Mensaje del correo
-        String message = "Hola,\n\n" +
-                "Gracias por completar el diagnóstico. Aquí tienes los resultados adjuntos:\n\n" +
-                "Análisis: " + analysis + "\n\n" +
-                "Saludos,\nEl equipo de VocalTech";
+            // Mensaje del correo
+            String message = "Hola,\n\n" +
+                    "Gracias por completar el diagnóstico. Aquí tienes los resultados adjuntos:\n\n" +
+                    "Análisis: " + analysis + "\n\n" +
+                    "Saludos,\nEl equipo de VocalTech";
 
-        // Crear la lista de archivos adjuntos
-        List<File> attachments = List.of(pdfFile, qrFile);
+            // Crear la lista de archivos adjuntos
+            List<File> attachments = List.of(pdfFile, qrFile);
 
-        // Enviar correo
-        mailServices.sendEmailWithFiles(
-                email,
-                "Diagnóstico Completo con Adjuntos",
-                message,
-                attachments
-        );
+            // Enviar correo
+            mailServices.sendEmailWithFiles(
+                    email,
+                    "Diagnóstico Completo con Adjuntos",
+                    message,
+                    attachments
+            );
         } catch (IOException e) {
             throw new RuntimeException("Failed to create temporary QR code file", e);
         } finally {
+            deleteTemporaryFiles(pdfFile, qrFile);
 
-            // Eliminar archivos temporales
-            // Eliminar el archivo PDF
-            if (!pdfFile.delete()) {
-                // Si el archivo no se puede eliminar, loguea un mensaje de advertencia
-                System.out.println("No se pudo eliminar el archivo PDF: " + pdfFile.getAbsolutePath());
-            } else {
-                System.out.println("Archivo PDF eliminado correctamente.");
-            }
-
-
-// Eliminar el archivo QR
-            if (!qrFile.delete()) {
-                // Si el archivo no se puede eliminar, loguea un mensaje de advertencia
-                System.out.println("No se pudo eliminar el archivo QR: " + qrFile.getAbsolutePath());
-            } else {
-                System.out.println("Archivo QR eliminado correctamente.");
-            }
         }
     }
 
-
-    @Transactional
-    public Entrepreneur createEntrepreneur(
+    private Entrepreneur handleEntrepreneurConversion(
             EntrepreneurRequestDTO requestDTO,
-            UUID leadId,
-            InputStream audioInputStream,
-            Resource audioResource,
-            String audioFilename
-    ) throws IOException, WriterException {
-        Lead lead = null;
+            String audioFileName,
+            String transcription,
+            String analysis,
+            String pdfFileName,
+            String qrFileName
 
-        if (leadId != null) {
-            lead = leadRepository.findById(leadId)
-                    .orElseThrow(() -> new EntityNotFoundException("Lead not found"));
+    ) {
+        Optional<Lead> leadOptional = leadRepository.findByEmail(requestDTO.email());
 
-            if (companyRepository.existsByLeadLeadId(leadId)) {
-                throw new IllegalStateException("This lead is already associated as a Company");
-            }
+    Entrepreneur entrepreneur;
 
-            if (!lead.getSubscribed()) {
-                throw new IllegalStateException("Lead is already unsubscribed");
-            }
+    if (leadOptional.isPresent()) {
+        // Si es un Lead, convertimos el Lead en Entrepreneur
+        Lead lead = leadOptional.get();
 
-            lead.setSubscribed(false);
-            leadRepository.save(lead);
-        }
+        // Convertir el Lead en Entrepreneur
+        entrepreneur = new Entrepreneur();
+        entrepreneur.setName(lead.getName());
+        entrepreneur.setEmail(lead.getEmail());
+        entrepreneur.setSubscribed(true); // Marcar como suscrito, por ejemplo
 
-        // Subir archivos a S3
-        String audioUrl = s3Service.uploadFile("audios/", requestDTO.name() +"-"+ audioFilename, audioInputStream, "audio/mpeg");
-
-
-        // Transcribir audio (utiliza un servicio de transcripción)
-        //String transcription = transcriptionService.transcribeAudio(audioResource);
-        String transcription ="No funciona OpenAI";
-
-
-                // Analizar transcripción
-        //String analysis = chatAnalysisService.analyzeTranscription(transcription);
-        String analysis ="Esta es una prueba porque OpenAI no responde aún, esperemos que pronto este solucionado como asi tambien todos los problemas de comunicacion de vocaltech h4-3";
-
-        String pdfFilename = requestDTO.name() + "-diagnosis.pdf";
-
-        // Generar código QR
-        String qrContent = "https://vocaltech.bucket.s3.amazonaws.com/diagnostics/" + pdfFilename; // URL del diagnóstico
-        byte[] qrBytes = qrCodeService.generateQRCode(qrContent);
-        String qrFilename = requestDTO.name() + "-qr.png";
-        String qrUrl = s3Service.uploadFile("qrcodes/", qrFilename, new ByteArrayInputStream(qrBytes), "image/png");
-
-        // Crear PDF
-        String pdfPath = "src/main/java/com/vocaltech/api/tmp/" + pdfFilename; // Ruta temporal para crear el PDF
-
-        try {
-            pdfGeneratorService.generatePdf(pdfPath, analysis, requestDTO.name(), qrBytes);
-        } catch (IOException e) {
-            throw new RuntimeException("Error al generar el PDF", e);
-        }
-
-        // Subir PDF a S3
-        File pdfFile = new File(pdfPath);
-        if (!pdfFile.exists() || pdfFile.length() == 0) {
-            throw new RuntimeException("El archivo PDF no se generó correctamente");
-        }
-        String pdfUrl = s3Service.uploadFile("diagnostics/", pdfFilename, new FileInputStream(pdfFile), "application/pdf");
-
-
-        Entrepreneur entrepreneur = new Entrepreneur();
-        entrepreneur.setName(requestDTO.name());
-        entrepreneur.setEmail(requestDTO.email());
+        // Otros campos específicos de Entrepreneur, como el teléfono, descripción, etc.
         entrepreneur.setPhone(requestDTO.phone());
         entrepreneur.setType(requestDTO.type());
         entrepreneur.setDescription(requestDTO.description());
@@ -188,25 +154,120 @@ public class EntrepreneurService {
         entrepreneur.setProductToDevelop(requestDTO.productToDevelop());
         entrepreneur.setHireJunior(requestDTO.hireJunior());
         entrepreneur.setMoreInfo(requestDTO.moreInfo());
-        entrepreneur.setActive(true);
-        entrepreneur.setLead(lead);
 
+        // Convertir productos (si es necesario)
         Set<Product> products = getProductsFromNames(requestDTO.products());
         entrepreneur.setProducts(new ArrayList<>(products));
 
-        // Asignar las URLs de los archivos
-        entrepreneur.setAudioUrl(audioUrl);
+        entrepreneur.setAudioKey(audioFileName);
         entrepreneur.setTranscription(transcription);
         entrepreneur.setAnalysis(analysis);
-        entrepreneur.setDiagnosisPdfUrl(pdfUrl);
-        entrepreneur.setQrCodeUrl(qrUrl);
+        entrepreneur.setDiagnosisPdfKey(pdfFileName);
+        entrepreneur.setQrCodeKey(qrFileName);
 
-        // **Enviar correo con los archivos adjuntos**
-        sendDiagnosticEmail(requestDTO.email(), analysis, pdfFile, qrBytes, qrFilename);
+        // Guardar o actualizar en la base de datos
+        return entrepreneur;
+    } else {
+        // Si no es un Lead, buscamos si ya es un Entrepreneur
 
-        return entrepreneurRepository.save(entrepreneur);
+        Entrepreneur existingEntrepreneur = entrepreneurRepository.findByEmail(requestDTO.email())
+                .orElseGet(() -> {
+                    // Si no se encuentra, creamos un nuevo Entrepreneur
+                    Entrepreneur newEntrepreneur = new Entrepreneur();
+                    newEntrepreneur.setEmail(requestDTO.email());
+                    newEntrepreneur.setName(requestDTO.name());
+                    newEntrepreneur.setSubscribed(true); // Marcar como suscrito, por ejemplo
+
+                    // Otros campos específicos de Entrepreneur, como el teléfono, descripción, etc.
+                    newEntrepreneur.setPhone(requestDTO.phone());
+                    newEntrepreneur.setType(requestDTO.type());
+                    newEntrepreneur.setDescription(requestDTO.description());
+                    newEntrepreneur.setMVP(requestDTO.MVP());
+                    newEntrepreneur.setProductToDevelop(requestDTO.productToDevelop());
+                    newEntrepreneur.setHireJunior(requestDTO.hireJunior());
+                    newEntrepreneur.setMoreInfo(requestDTO.moreInfo());
+
+                    // Convertir productos (si es necesario)
+                    Set<Product> products = getProductsFromNames(requestDTO.products());
+                    newEntrepreneur.setProducts(new ArrayList<>(products));
+
+
+                    newEntrepreneur.setAudioKey(audioFileName);
+                    newEntrepreneur.setTranscription(transcription);
+                    newEntrepreneur.setAnalysis(analysis);
+                    newEntrepreneur.setDiagnosisPdfKey(pdfFileName);
+                    newEntrepreneur.setQrCodeKey(qrFileName);
+
+                    return newEntrepreneur;
+                });
+
+        // Si ya existe un Entrepreneur, realizamos la actualización, si no, guardamos el nuevo.
+        if (existingEntrepreneur.getRecipientId() != null) {
+            // Ya existe, lo actualizamos
+            return updateEntrepreneur(existingEntrepreneur.getRecipientId(), requestDTO);
+        } else {
+            // Nuevo Entrepreneur, lo guardamos
+            return existingEntrepreneur;
+        }
+    }
     }
 
+
+
+
+
+    @Transactional
+    public Entrepreneur createEntrepreneur(
+            EntrepreneurRequestDTO requestDTO,
+            InputStream audioInputStream,
+            Resource audioResource,
+            String audioFilename
+    ) throws IOException, WriterException {
+
+
+
+        String audioFileName = requestDTO.name() +"-"+ audioFilename;
+        // Subir archivos a S3
+        String audioUrl = s3Service.uploadFile("audios/", audioFileName, audioInputStream, "audio/mpeg");
+
+        // Transcribir audio (utiliza un servicio de transcripción)
+        //String transcription = transcriptionService.transcribeAudio(audioResource);
+        String transcription = """
+                Hola, soy María Pérez, fundadora de TechSolutions. 
+                En nuestro equipo, uno de los principales desafíos que enfrentamos es la falta 
+                de comunicación clara y eficiente entre los miembros, especialmente cuando trabajamos 
+                en proyectos tecnológicos complejos. Suele pasar que la información no fluye de manera adecuada, 
+                lo que puede llevar a malentendidos, algunos retrasos en la toma de decisiones. Esto termina afectando 
+                tanto a la productividad como a la calidad del trabajo. Estamos necesitando herramientas y procesos 
+                que mejoren la colaboración y aseguren que todos estemos alineados para lograr resultados 
+                más rápidos y efectivos.""";
+
+        // Analizar transcripción
+        //String analysis = chatAnalysisService.analyzeTranscription(transcription);
+        String analysis ="En equipos tecnológicos como el tuyo, una comunicación poco clara puede traducirse en malentendidos, retrasos y pérdida de eficiencia. Si la información no fluye de manera estructurada, las decisiones se dilatan y la calidad del trabajo se ve afectada. Esto no solo impacta la productividad, sino que también genera frustración y desgaste en el equipo.\n" +
+                "\n" +
+                "La buena noticia es que esto tiene solución. Con las herramientas y metodologías adecuadas, tu equipo puede lograr una comunicación más ágil, precisa y alineada con sus objetivos. Desde estrategias efectivas para reuniones hasta la optimización del uso de herramientas digitales, podemos ayudarte a transformar la manera en que tu equipo se comunica, asegurando mejores resultados en menos tiempo. ";
+
+        String pdfFilename = requestDTO.name() + "-diagnosis.pdf";
+
+        // Generar código QR
+        String qrContent = "https://vocaltech-test.vercel.app/"; // URL del diagnóstico
+        byte[] qrBytes = qrCodeService.generateQRCode(qrContent);
+        String qrFilename = requestDTO.name() + "-qr.png";
+        String qrUrl = s3Service.uploadFile("qrcodes/", qrFilename, new ByteArrayInputStream(qrBytes), "image/png");
+
+        File pdfFile = generateAndUploadPdf(requestDTO.name(), analysis, qrBytes, pdfFilename);
+
+        Entrepreneur entrepreneur = handleEntrepreneurConversion(requestDTO, audioFileName, transcription, analysis, pdfFilename, qrFilename);
+
+        // Enviar email con los archivos adjuntos
+        sendDiagnosticEmail(requestDTO.email(), analysis, pdfFile, qrBytes, qrFilename);
+
+// Guardar el entrepreneur
+        return entrepreneurRepository.save(entrepreneur);
+
+
+    }
 
 
 
@@ -215,7 +276,7 @@ public class EntrepreneurService {
     }
 
     public List<Entrepreneur> getActiveEntrepreneurs() {
-        return entrepreneurRepository.findByActiveTrue();  // Supone que tienes una consulta específica en el repositorio
+        return entrepreneurRepository.findBySubscribedTrue();  // Supone que tienes una consulta específica en el repositorio
     }
 
     public Entrepreneur getEntrepreneurById(UUID id) {
@@ -272,7 +333,7 @@ public class EntrepreneurService {
         Entrepreneur entrepreneur = entrepreneurRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Lead not found"));
 
-        entrepreneur.setActive(false);
+        entrepreneur.setSubscribed(false);
         entrepreneurRepository.save(entrepreneur);
     }
 
@@ -280,10 +341,10 @@ public class EntrepreneurService {
     @Transactional
     public void deleteEntrepreneur(UUID id) {
         Entrepreneur entrepreneur = getEntrepreneurById(id);
-        if (!entrepreneur.getActive()) {
-            throw new IllegalStateException("Entrepreneur is already inactive.");
+        if (!entrepreneur.getSubscribed()) {
+            throw new IllegalStateException("Entrepreneur is already desubscripto.");
         }
-        entrepreneur.setActive(false);
+        entrepreneur.setSubscribed(false);
         entrepreneurRepository.save(entrepreneur); // Persistimos el cambio
     }
 }

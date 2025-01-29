@@ -2,6 +2,7 @@ package com.vocaltech.api.domain.products;
 
 import com.vocaltech.api.domain.companies.Company;
 import com.vocaltech.api.domain.entrepreneurs.Entrepreneur;
+import com.vocaltech.api.domain.recipients.Recipient;
 import lombok.*;
 
 import jakarta.persistence.*;
@@ -39,11 +40,7 @@ public class Product {
     private Boolean active = true;
 
     @ManyToMany(mappedBy = "products")
-    private List<Company> companies = new ArrayList<>();
-
-    @ManyToMany(mappedBy = "products")
-    private List<Entrepreneur> entrepreneurs = new ArrayList<>();
-
+    private List<Recipient> recipients = new ArrayList<>();
 
     @Column(name = "creation_date", updatable = false)
     private LocalDateTime creationDate;

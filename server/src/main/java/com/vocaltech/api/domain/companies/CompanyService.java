@@ -3,7 +3,6 @@ package com.vocaltech.api.domain.companies;
 
 import com.vocaltech.api.domain.entrepreneurs.IEntrepreneurRepository;
 import com.vocaltech.api.domain.leads.ILeadRepository;
-import com.vocaltech.api.domain.leads.Lead;
 import com.vocaltech.api.domain.products.IProductRepository;
 import com.vocaltech.api.domain.products.Product;
 import com.vocaltech.api.domain.products.ProductEnum;
@@ -56,49 +55,28 @@ public class CompanyService {
     @Transactional
     public Company createCompany(
             CompanyRequestDTO requestDTO,
-            UUID leadId,
             InputStream audioInputStream,
             String audioFilename
     ) {
 
-        Lead lead = null;
 
-        if (leadId != null) {
-            lead = leadRepository.findById(leadId)
-                    .orElseThrow(() -> new EntityNotFoundException("Lead not found"));
-
-            // Verificar si el Lead ya está asociado como una Company
-            if (entrepreneurRepository.existsByLeadLeadId(leadId)) {
-                throw new IllegalStateException("This lead is already associated as a Entrepreneur");
-            }
-
-            if (!lead.getSubscribed()) {
-                throw new IllegalStateException("Lead is already unsubscribed");
-            }
-
-            lead.setSubscribed(false);
-            leadRepository.save(lead);
-        }
-
+        String audioFileName = requestDTO.companyName() +"-"+ audioFilename;
         // Subir archivos a S3
-        String audioUrl = s3Service.uploadFile("audios/", requestDTO.companyName() + audioFilename , audioInputStream, "audio/mpeg");
+        String audioUrl = s3Service.uploadFile("audios/", audioFileName , audioInputStream, "audio/mpeg");
 
         Company company = new Company();
 
         company.setCompanyName(requestDTO.companyName());
         company.setSector(requestDTO.sector());
         company.setSize(requestDTO.size());
-        company.setContactName(requestDTO.contactName());
-        company.setContactEmail(requestDTO.email());
-        company.setContactPhone(requestDTO.phone());
+
         company.setDescription(requestDTO.description());
         company.setMVP(requestDTO.MVP());
         company.setDevelopmentStage(requestDTO.developmentStage());
         company.setHireJunior(requestDTO.hireJunior());
         company.setTalentProfile(requestDTO.talentProfile());
         company.setMoreInfo(requestDTO.moreInfo());
-        company.setActive(true);
-        company.setLead(lead);
+
 
         Set<Product> products = getProductsFromNames(requestDTO.products());
 
@@ -106,7 +84,7 @@ public class CompanyService {
         company.setProducts(new ArrayList<>(products));
 
         // Asignar las URLs de los archivos
-        company.setAudioUrl(audioUrl);
+        company.setAudioKey(audioFileName);
 
         return companyRepository.save(company);
     }
@@ -117,7 +95,7 @@ public class CompanyService {
     }
 
     public List<Company> getActiveCompanies() {
-        return companyRepository.findByActiveTrue();  // Supone que tienes una consulta específica en el repositorio
+        return companyRepository.findBySubscribedTrue();  // Supone que tienes una consulta específica en el repositorio
     }
 
     public Company getCompanyById(UUID id) {
@@ -140,15 +118,7 @@ public class CompanyService {
         if (requestDTO.size() != null) {
             company.setSize(requestDTO.size());
         }
-        if (requestDTO.contactName() != null && !requestDTO.contactName().isBlank()) {
-            company.setContactName(requestDTO.contactName());
-        }
-        if (requestDTO.email() != null && !requestDTO.email().isBlank()) {
-            company.setContactEmail(requestDTO.email());
-        }
-        if (requestDTO.phone() != null && !requestDTO.phone().isBlank()) {
-            company.setContactPhone(requestDTO.phone());
-        }
+
         if (requestDTO.description() != null) {
             company.setDescription(requestDTO.description());
         }
@@ -184,17 +154,17 @@ public class CompanyService {
         Company company = companyRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Lead not found"));
 
-        company.setActive(false);
+        company.setSubscribed(false);
         companyRepository.save(company);
     }
 
     @Transactional
     public void deleteCompany(UUID id) {
         Company company = getCompanyById(id);
-        if (!company.getActive()) {
+        if (!company.getSubscribed()) {
             throw new IllegalStateException("Company is already inactive.");
         }
-        company.setActive(false);
+        company.setSubscribed(false);
         companyRepository.save(company); // Persistimos el cambio
     }
 }

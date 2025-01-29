@@ -1,11 +1,12 @@
 package com.vocaltech.api.domain.leads;
 
+import com.vocaltech.api.domain.recipients.Recipient;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+
 
 @Getter
 @Setter
@@ -13,23 +14,11 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "leads")
-public class Lead {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "lead_id")
-    private UUID leadId;
+@DiscriminatorValue("Lead")
+public class Lead extends Recipient {
 
-    @Column(nullable = false)
-    private String name;
-
-    @Column(nullable = false, unique = true)
-    private String email;
-
-    @Column(name = "creation_date", nullable = false, updatable = false)
+    @Column(name = "creation_date", updatable = false)
     @CreationTimestamp
     private LocalDateTime creationDate;
 
-    @Column(nullable = false)
-    private Boolean subscribed;
 }

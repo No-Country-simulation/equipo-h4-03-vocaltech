@@ -26,19 +26,18 @@ import java.util.stream.Collectors;
 public class EntrepreneurController {
 
     private final EntrepreneurService entrepreneurService;
-    private final TranscriptionService transcriptionService;
+
 
     public EntrepreneurController(EntrepreneurService entrepreneurService, TranscriptionService transcriptionService) {
         this.entrepreneurService = entrepreneurService;
-        this.transcriptionService = transcriptionService;
+
     }
 
     // Crear un emprendedor
     @PostMapping()
     public ResponseEntity<EntrepreneurResponseDTO> createEntrepreneur(
-            @ModelAttribute EntrepreneurRequestDTO requestDTO,
-            @RequestParam(required = false) UUID leadId
-    ) {
+            @ModelAttribute EntrepreneurRequestDTO requestDTO
+            ) {
         try {
 
             Resource audioResource = requestDTO.audioFile().getResource();
@@ -47,7 +46,6 @@ public class EntrepreneurController {
 
             Entrepreneur entrepreneur = entrepreneurService.createEntrepreneur(
                     requestDTO,
-                    leadId,
                     audioInputStream,
                     audioResource,
                     requestDTO.audioFile().getOriginalFilename()
@@ -57,7 +55,7 @@ public class EntrepreneurController {
             URI location = ServletUriComponentsBuilder
                     .fromCurrentRequest()
                     .path("/{id}")
-                    .buildAndExpand(entrepreneur.getEntrepreneurId())
+                    .buildAndExpand(entrepreneur.getRecipientId())
                     .toUri();
 
             // Retornar la respuesta con 201 Created y el DTO del recurso creado

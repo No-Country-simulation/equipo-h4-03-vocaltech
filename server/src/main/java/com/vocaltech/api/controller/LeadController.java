@@ -33,7 +33,7 @@ public class LeadController {
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
-                .buildAndExpand(lead.getLeadId())
+                .buildAndExpand(lead.getRecipientId())
                 .toUri();
 
         return ResponseEntity.created(location).body(LeadResponseDTO.fromEntity(lead));
