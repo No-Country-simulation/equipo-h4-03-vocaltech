@@ -33,9 +33,8 @@ public class CompanyController {
 
     // Crear una empresa
     @PostMapping()
-    public ResponseEntity<CompanyResponseDTO> createEntrepreneur(
-            @ModelAttribute CompanyRequestDTO requestDTO,
-            @RequestParam(required = false) UUID leadId
+    public ResponseEntity<CompanyResponseDTO> createCompany(
+            @ModelAttribute CompanyRequestDTO requestDTO
     ) {
         try {
 
@@ -43,7 +42,6 @@ public class CompanyController {
 
             Company company = companyService.createCompany(
                     requestDTO,
-                    leadId,
                     audioInputStream,
                     requestDTO.audioFile().getOriginalFilename()
             );
@@ -52,7 +50,7 @@ public class CompanyController {
             URI location = ServletUriComponentsBuilder
                     .fromCurrentRequest()
                     .path("/{id}")
-                    .buildAndExpand(company.getCompanyId())
+                    .buildAndExpand(company.getRecipientId())
                     .toUri();
 
             // Retornar la respuesta con 201 Created y el DTO del recurso creado

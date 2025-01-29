@@ -10,13 +10,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public record CompanyResponseDTO(
-        UUID id,
         String companyName,
         String sector,
         Company.CompanySize size,
-        String contactName,
-        String email,
-        String phone,
         String description,
         Boolean MVP,
         Company.DevelopmentStage developmentStage,
@@ -28,13 +24,9 @@ public record CompanyResponseDTO(
 ) {
     public static CompanyResponseDTO fromEntity(Company company) {
         return new CompanyResponseDTO(
-                company.getCompanyId(),
                 company.getCompanyName(),
                 company.getSector(),
                 company.getSize(),
-                company.getContactName(),
-                company.getContactEmail(),
-                company.getContactPhone(),
                 company.getDescription(),
                 company.getMVP(),
                 company.getDevelopmentStage(),
@@ -45,7 +37,7 @@ public record CompanyResponseDTO(
                         .stream()
                         .map(ProductResponseDTO::new)
                         .collect(Collectors.toSet()),
-                company.getAudioUrl()
+                company.getAudioKey()
         );
 
     }

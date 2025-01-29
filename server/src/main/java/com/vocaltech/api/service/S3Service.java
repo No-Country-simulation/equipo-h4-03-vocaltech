@@ -3,6 +3,7 @@ package com.vocaltech.api.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -42,8 +43,7 @@ public class S3Service {
                         RequestBody.fromInputStream(fileInputStream, fileInputStream.available())
                 );
 
-                // Generar la URL pública del archivo
-                return String.format("https://%s.s3.amazonaws.com/%s", bucketName, fullKey);
+                return generatePresignedUrl(fullKey, Duration.ofDays(2)); // URL válida por 2 dias
             } catch (Exception e) {
             throw new RuntimeException("Error al subir el archivo a S3", e);
         }
@@ -66,5 +66,20 @@ public class S3Service {
             throw new RuntimeException("Error al generar el enlace prefirmado", e);
         }
     }
+
+    public byte[] downloadFile(String key) {
+        try {
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .build();
+
+            InputStream inputStream = s3Client.getObject(getObjectRequest);
+            return inputStream.readAllBytes(); // Convertir InputStream a byte[]
+        } catch (Exception e) {
+            throw new RuntimeException("Error al descargar el archivo desde S3", e);
+        }
+    }
+
 }
 

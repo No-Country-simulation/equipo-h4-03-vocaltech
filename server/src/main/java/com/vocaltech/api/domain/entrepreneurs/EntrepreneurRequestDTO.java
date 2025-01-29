@@ -38,13 +38,13 @@ public record EntrepreneurRequestDTO(
 
         MultipartFile audioFile,
 
-        Boolean active
+        Boolean subscribed
 ) {
 
     // Si quieres manejar el valor por defecto en el DTO o en el constructor, podrías hacerlo aquí
     public EntrepreneurRequestDTO {
-        if (active == null) {
-            active = true; // Establecer como 'true' por defecto
+        if (subscribed == null) {
+            subscribed = true; // Establecer como 'true' por defecto
         }
     }
 
@@ -62,7 +62,7 @@ public record EntrepreneurRequestDTO(
                 dto.moreInfo(),
                 dto.products(),
                 dto.audioFile(),
-                dto.active()
+                dto.subscribed()
         );
     }
 }
