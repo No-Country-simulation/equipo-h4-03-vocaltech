@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 import software.amazon.awssdk.core.sync.RequestBody;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 @Service
@@ -78,6 +79,16 @@ public class S3Service {
             return inputStream.readAllBytes(); // Convertir InputStream a byte[]
         } catch (Exception e) {
             throw new RuntimeException("Error al descargar el archivo desde S3", e);
+        }
+
+    }
+
+    public String downloadTemplateAsString(String key) {
+        try {
+            byte[] fileBytes = downloadFile(key); // Usa el método existente para descargar el archivo
+            return new String(fileBytes, StandardCharsets.UTF_8); // Convierte los bytes a String
+        } catch (Exception e) {
+            throw new RuntimeException("Error al descargar o convertir el template desde S3", e);
         }
     }
 

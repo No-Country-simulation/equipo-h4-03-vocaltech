@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -76,4 +77,8 @@ public abstract class Recipient {
     private List<CampaignRecipient> campaignRecipients = new ArrayList<>();
 
 
+    @Column(name = "created_at", updatable = false)
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime createdAt;
 }
