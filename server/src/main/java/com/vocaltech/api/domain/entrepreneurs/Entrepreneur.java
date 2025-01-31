@@ -41,9 +41,9 @@ public class Entrepreneur extends Recipient {
     private ProductToDevelop productToDevelop;
 
 
-    @Column(name = "diagnosis_date", updatable = false)
+    @Column(name = "created_at", updatable = false)
     @CreationTimestamp
-    private LocalDateTime diagnosisDate;
+    private LocalDateTime createdAt;
 
     }
 

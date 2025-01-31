@@ -1,9 +1,11 @@
 package com.vocaltech.api.domain.leads;
 
+import com.vocaltech.api.domain.recipients.RecipientResponseDTO;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record LeadResponseDTO(
+public record LeadResponseDTO (
 
         String name,
         String email,
@@ -14,7 +16,7 @@ public record LeadResponseDTO(
 
                 lead.getName(),
                 lead.getEmail(),
-                lead.getCreationDate()
+                lead.getCreatedAt()
         );
     }
 }

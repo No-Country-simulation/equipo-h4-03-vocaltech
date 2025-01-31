@@ -17,8 +17,8 @@ import java.time.LocalDateTime;
 @DiscriminatorValue("Lead")
 public class Lead extends Recipient {
 
-    @Column(name = "creation_date", updatable = false)
+    @Column(name = "created_at", updatable = false)
     @CreationTimestamp
-    private LocalDateTime creationDate;
+    private LocalDateTime createdAt;
 
 }

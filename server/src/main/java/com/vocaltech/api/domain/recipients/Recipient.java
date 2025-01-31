@@ -76,4 +76,13 @@ public abstract class Recipient {
     private List<CampaignRecipient> campaignRecipients = new ArrayList<>();
 
 
+    @Column(name = "created_at", updatable = false)
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime createdAt;
+
+    @Transient // No se persiste en la base de datos, pero lo expone como campo en el DTO
+    public String getRecipientType() {
+        return this.getClass().getSimpleName();
+    }
 }

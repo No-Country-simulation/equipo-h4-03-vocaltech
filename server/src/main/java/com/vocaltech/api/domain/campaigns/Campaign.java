@@ -3,6 +3,7 @@ package com.vocaltech.api.domain.campaigns;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,14 +21,14 @@ public class Campaign {
 
     private String name;
 
-    @Column(nullable = false)
-    private String templateUrl; // Guarda la URL o la ruta del archivo
+    private LocalDateTime startDate;
 
-    private java.sql.Date startDate;
-
-    private java.sql.Date endDate;
+    private LocalDateTime endDate;
 
     @OneToMany(mappedBy = "campaign")
     private List<CampaignRecipient> campaignRecipients;
+
+    @OneToMany(mappedBy = "campaign")
+    private List<CampaignEmail> campaignEmails;
 
 }
