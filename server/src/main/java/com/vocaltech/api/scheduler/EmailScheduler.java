@@ -6,6 +6,8 @@ import com.vocaltech.api.domain.campaigns.ICampaignEmailRepository;
 import com.vocaltech.api.domain.campaigns.ICampaignRecipientRepository;
 import com.vocaltech.api.service.MailServices;
 import com.vocaltech.api.service.S3Service;
+import com.vocaltech.api.service.TemplateService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
@@ -24,16 +26,19 @@ public class EmailScheduler {
     private final MailServices mailService;
     private final S3Service s3Service;
     private final TemplateEngine templateEngine;
+    private final TemplateService templateService;
 
+    @Autowired
     public EmailScheduler(ICampaignRecipientRepository campaignRecipientRepository,
                           ICampaignEmailRepository campaignEmailRepository,
                           MailServices mailService,
-                          S3Service s3Service, TemplateEngine templateEngine) {
+                          S3Service s3Service, TemplateEngine templateEngine, TemplateService templateService) {
         this.campaignRecipientRepository = campaignRecipientRepository;
         this.campaignEmailRepository = campaignEmailRepository;
         this.mailService = mailService;
         this.s3Service = s3Service;
         this.templateEngine = templateEngine;
+        this.templateService = templateService;
     }
 
     // Se ejecuta cada 30 minutos
@@ -51,7 +56,7 @@ public class EmailScheduler {
     }
 
     private String downloadTemplateFromS3(String templateKey) {
-        return s3Service.downloadTemplateAsString(templateKey); // Usa el nuevo método
+        return templateService.getTemplate(templateKey); // Usa el servicio de caching
     }
 
     private String processTemplateWithThymeleaf(String templateContent, CampaignRecipient recipient) {

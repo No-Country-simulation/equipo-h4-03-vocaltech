@@ -14,7 +14,7 @@ public record LeadResponseDTO(
 
                 lead.getName(),
                 lead.getEmail(),
-                lead.getCreationDate()
+                lead.getCreatedAt()
         );
     }
 }
