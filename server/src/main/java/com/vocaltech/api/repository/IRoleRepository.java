@@ -13,4 +13,7 @@ import java.util.UUID;
 public interface IRoleRepository extends JpaRepository<Role, UUID> {
     @Query(value = "SELECT r from  Role r where r.name = :name")
     Optional<Role> findRoleByName(@Param("name") String name);
+
+    Optional<Role> findByName(String admin);
+
 }
