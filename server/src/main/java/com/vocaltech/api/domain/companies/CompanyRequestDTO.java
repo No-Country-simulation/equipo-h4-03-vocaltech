@@ -1,7 +1,5 @@
 package com.vocaltech.api.domain.companies;
 
-import com.vocaltech.api.domain.entrepreneurs.Entrepreneur;
-import com.vocaltech.api.domain.entrepreneurs.EntrepreneurRequestDTO;
 import jakarta.validation.constraints.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -46,12 +44,12 @@ public record CompanyRequestDTO(
 
         MultipartFile audioFile,
 
-        Boolean active
+        Boolean subscribed
 ) {
     // Si quieres manejar el valor por defecto en el DTO o en el constructor, podrías hacerlo aquí
     public CompanyRequestDTO {
-        if (active == null) {
-            active = true; // Establecer como 'true' por defecto
+        if (subscribed == null) {
+            subscribed = true; // Establecer como 'true' por defecto
         }
     }
 
@@ -72,7 +70,7 @@ public record CompanyRequestDTO(
                 dto.moreInfo(),
                 dto.products(),
                 dto.audioFile(),
-                dto.active()
+                dto.subscribed()
         );
     }
 }

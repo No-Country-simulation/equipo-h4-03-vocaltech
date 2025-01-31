@@ -1,12 +1,14 @@
 package com.vocaltech.api.domain.entrepreneurs;
 
 import com.vocaltech.api.domain.products.ProductResponseDTO;
+import lombok.Builder;
 
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Builder
 public record EntrepreneurResponseDTO(
         String name,
         String email,

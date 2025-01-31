@@ -9,7 +9,6 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -81,4 +80,9 @@ public abstract class Recipient {
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime createdAt;
+
+    @Transient // No se persiste en la base de datos, pero lo expone como campo en el DTO
+    public String getRecipientType() {
+        return this.getClass().getSimpleName();
+    }
 }
