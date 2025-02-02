@@ -6,6 +6,10 @@
   overflow-x: hidden;
 }
 
+* {
+  font-family: "Roboto", sans-serif;
+}
+
 .active div {
   background-color: #5e66f2;
   color: #ffffff;

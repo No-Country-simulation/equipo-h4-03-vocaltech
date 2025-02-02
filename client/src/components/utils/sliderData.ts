@@ -15,30 +15,30 @@ export const cards: Card[] = [
     id: 1,
     img: userImg1,
     content:
-      "¡Menos mal que encontré a Volcatech! Estaba hecho un lío, con mil ideas en la cabeza pero sin saber cómo bajarlas a tierra. Gracias a ellos, pude comunicarme mejor con mi equipo y con mis clientes, y lo más importante, logré ordenar mis ideas para que mi empresa por fin empiece a tomar forma. ¡Ahora sí vamos con todo!",
+      "Trabajar con Vocaltech ha sido una experiencia muy enriquecedora. Me ayudaron a mejorar mi comunicación dentro de la empresa, lo cual ha tenido un impacto positivo en mi trabajo en equipo. Pero lo que más valoro es que me ayudaron a ordenar mis ideas y a encontrar claridad en mi visión, lo que me ha dado mucha más confianza para seguir creciendo profesionalmente.",
   },
   {
     id: 2,
     img: userImg2,
     content:
-      "¡Estoy feliz con los resultados que he obtenido con Volcatech! Como emprendedora, a veces es difícil transmitir tu visión a otros, pero ellos me ayudaron a comunicarme de una manera mucho más clara y efectiva. Gracias a su apoyo, mis ideas finalmente están tomando forma y mi proyecto está avanzando a pasos agigantados. ¡Recomendadísimos!",
+      "¡Menos mal que encontré a Vocaltech! Estaba hecho un lío, con mil ideas en la cabeza pero sin saber cómo bajarlas a tierra. Gracias a ellos, pude comunicarme mejor con mi equipo y con mis clientes, y lo más importante, logré ordenar mis ideas para que mi empresa por fin empiece a tomar forma. ¡Ahora sí vamos con todo!",
   },
   {
     id: 3,
     img: userImg3,
     content:
-      "Trabajar con Volcatech ha sido una experiencia muy enriquecedora. Me ayudaron a mejorar mi comunicación dentro de la empresa, lo cual ha tenido un impacto positivo en mi trabajo en equipo y en la presentación de mis proyectos. Pero lo que más valoro es que me ayudaron a ordenar mis ideas y a encontrar claridad en mi visión.",
+      "¡Estoy feliz con los resultados que he obtenido con Vocaltech! Como emprendedor, a veces es difícil transmitir tu visión a otros, pero ellos me ayudaron a comunicarme de una manera mucho más clara y efectiva. Gracias a su apoyo, mis ideas finalmente están tomando forma y mi proyecto está avanzando a pasos agigantados. ¡Recomendadísimos!",
   },
   {
     id: 4,
     img: userImg4,
     content:
-      "¡Menos mal que encontré a Volcatech! Estaba hecho un lío, con mil ideas en la cabeza pero sin saber cómo bajarlas a tierra. Gracias a ellos, pude comunicarme mejor con mi equipo y con mis clientes, y lo más importante, logré ordenar mis ideas para que mi empresa por fin empiece a tomar forma. ¡Ahora sí vamos con todo!",
+      "Trabajar con Vocaltech ha sido una experiencia muy enriquecedora. Me ayudaron a mejorar mi comunicación dentro de la empresa, lo cual ha tenido un impacto positivo en mi trabajo en equipo. Pero lo que más valoro es que me ayudaron a ordenar mis ideas y a encontrar claridad en mi visión, lo que me ha dado mucha más confianza para seguir creciendo profesionalmente.",
   },
   {
     id: 5,
     img: userImg5,
     content:
-      "¡Estoy feliz con los resultados que he obtenido con Volcatech! Como emprendedora, a veces es difícil transmitir tu visión a otros, pero ellos me ayudaron a comunicarme de una manera mucho más clara y efectiva. Gracias a su apoyo, mis ideas finalmente están tomando forma y mi proyecto está avanzando a pasos agigantados. ¡Recomendadísimos!",
+      "¡Menos mal que encontré a Vocaltech! Estaba hecho un lío, con mil ideas en la cabeza pero sin saber cómo bajarlas a tierra. Gracias a ellos, pude comunicarme mejor con mi equipo y con mis clientes, y lo más importante, logré ordenar mis ideas para que mi empresa por fin empiece a tomar forma. ¡Ahora sí vamos con todo!",
   },
 ];

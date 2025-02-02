@@ -40,7 +40,7 @@ const Navbar = () => {
           >
             Testimonios
           </button>
-          <Link to="/" className="hover:text-primary">
+          <Link to="/diagnostico" className="hover:text-primary">
             Te podemos ayudar
           </Link>
         </div>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
-import vosImg from "../../assets/about_1.png";
+import vosImg from "../../assets/about_1.jfif";
 import nocountryImg from "../../assets/about_2.png";
 import nocountryLogo from "../../assets/logo_nocountry.jpg";
 import vosLogo from "../../assets/VosytuVoz_logo.svg";

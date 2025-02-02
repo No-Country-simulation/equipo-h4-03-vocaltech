@@ -6,13 +6,7 @@ import {
 import vocaltechIcon from "../../assets/icon_vocaltech.svg";
 import vocaltechLogo from "../../assets/logo_letters_vocaltech.svg";
 import { Link } from "react-router-dom";
-
-const Footer = () => {
-  // Función para volver al inicio
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
+const AppFooter = () => {
   return (
     <div className="bg-cover bg-center bg-[url('assets/hero_img4.jpg')] h-[400px] flex justify-center items-center relative">
       <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75">
@@ -37,7 +31,6 @@ const Footer = () => {
                 src={vocaltechIcon}
                 alt="logo"
                 className="h-20 cursor-pointer"
-                onClick={scrollToTop}
               />
               <img src={vocaltechLogo} alt="logo" className="h-10" />
             </div>
@@ -69,4 +62,4 @@ const Footer = () => {
   );
 };
 
-export default Footer;
+export default AppFooter;

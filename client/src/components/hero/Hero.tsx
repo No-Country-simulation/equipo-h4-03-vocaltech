@@ -8,10 +8,10 @@ const Hero = () => {
       <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75">
         <div className="container flex items-center justify-between">
           <div className="flex flex-col items-start gap-10">
-            <p className="hero-title font-bold text-6xl max-w-[800px] bg-gradient-to-r from-primary to-accent text-transparent bg-clip-text font-primary pb-2">
+            <p className="font-bold text-6xl max-w-[800px] bg-gradient-to-r from-primary to-accent text-transparent bg-clip-text font-primary pb-2">
               Impulsamos tu crecimiento con soluciones tecnológicas
             </p>
-            <p className="text-2xl text-white font-secondary max-w-[500px]">
+            <p className="text-2xl text-white max-w-[500px]">
               Con Vocaltech, transforma tu visión en un producto exitoso y
               alcanza tus objetivos comerciales.
             </p>

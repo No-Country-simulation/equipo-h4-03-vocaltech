@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { RiChatVoiceFill } from "react-icons/ri";
 import { services } from "../utils/servicesData.ts";
 
 const OurServices = () => {
@@ -20,13 +19,14 @@ const OurServices = () => {
           }`}
         >
           {services.map((service) => {
+            const Icon = service.icon;
             return (
               <div
                 key={service.id}
                 className="flex flex-col items-center h-[280px] text-center transition-colors duration-300 ease-in-out bg-white shadow-xl justify-evenly group p-7 w-[330px] rounded-2xl hover:bg-primary"
               >
-                <RiChatVoiceFill className="w-14 h-14 text-primary group-hover:text-white" />
-                <p className="text-xl font-semibold text-primary group-hover:text-white">
+                <Icon className="w-12 h-12 text-primary group-hover:text-white" />
+                <p className="text-xl font-semibold text-primary group-hover:text-white font-primary">
                   {service.title}
                 </p>
                 <p className="text-sm group-hover:text-white">
