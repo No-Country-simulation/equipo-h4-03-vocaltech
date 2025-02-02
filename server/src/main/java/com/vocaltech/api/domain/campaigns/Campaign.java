@@ -25,10 +25,10 @@ public class Campaign {
 
     private LocalDateTime endDate;
 
-    @OneToMany(mappedBy = "campaign")
+    @OneToMany(mappedBy = "campaign", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CampaignRecipient> campaignRecipients;
 
-    @OneToMany(mappedBy = "campaign")
+    @OneToMany(mappedBy = "campaign", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CampaignEmail> campaignEmails;
 
 }
