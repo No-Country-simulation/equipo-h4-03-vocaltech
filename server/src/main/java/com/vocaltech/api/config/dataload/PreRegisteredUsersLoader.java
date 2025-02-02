@@ -1,4 +1,4 @@
-package com.vocaltech.api.config.security;
+package com.vocaltech.api.config.dataload;
 
 import com.vocaltech.api.model.Role;
 import com.vocaltech.api.model.User;

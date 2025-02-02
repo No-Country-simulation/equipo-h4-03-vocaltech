@@ -10,8 +10,6 @@ import com.vocaltech.api.service.TemplateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
 
 import java.io.File;
 import java.time.Duration;
@@ -25,19 +23,17 @@ public class EmailScheduler {
     private final ICampaignEmailRepository campaignEmailRepository;
     private final MailServices mailService;
     private final S3Service s3Service;
-    private final TemplateEngine templateEngine;
     private final TemplateService templateService;
 
     @Autowired
     public EmailScheduler(ICampaignRecipientRepository campaignRecipientRepository,
                           ICampaignEmailRepository campaignEmailRepository,
                           MailServices mailService,
-                          S3Service s3Service, TemplateEngine templateEngine, TemplateService templateService) {
+                          S3Service s3Service, TemplateService templateService) {
         this.campaignRecipientRepository = campaignRecipientRepository;
         this.campaignEmailRepository = campaignEmailRepository;
         this.mailService = mailService;
         this.s3Service = s3Service;
-        this.templateEngine = templateEngine;
         this.templateService = templateService;
     }
 
@@ -59,15 +55,10 @@ public class EmailScheduler {
         return templateService.getTemplate(templateKey); // Usa el servicio de caching
     }
 
-    private String processTemplateWithThymeleaf(String templateContent, CampaignRecipient recipient) {
-        Context context = new Context();
-        context.setVariable("recipient", recipient); // Aquí puedes agregar más variables si es necesario
-        return templateEngine.process(templateContent, context); // Procesa el template con Thymeleaf
-    }
 
     private void sendEmail(CampaignRecipient recipient, CampaignEmail campaignEmail) {
         String templateContent = downloadTemplateFromS3(campaignEmail.getTemplateKey()); // Descarga el template como String
-        String emailBody = processTemplateWithThymeleaf(templateContent, recipient); // Procesa el template con Thymeleaf
+        String emailBody = templateService.processTemplate(templateContent, recipient.getRecipient().getRecipientId()); // Procesa el template con Thymeleaf
         List<File> attachments = fetchAttachmentsIfNeeded(recipient, campaignEmail);
 
         mailService.sendEmailWithFiles(
@@ -101,8 +92,8 @@ public class EmailScheduler {
         if (nextEmail.isPresent()) {
 
             LocalDateTime startDate = recipient.getRecipient().getCreatedAt();
-            int delayDays = nextEmail.get().getDelayDays();
-            recipient.setNextEmailDate(startDate.plusDays(delayDays));
+            double delayDays = nextEmail.get().getDelayDays();
+            recipient.setNextEmailDate(startDate.plusDays((long) delayDays));
 
         }
 

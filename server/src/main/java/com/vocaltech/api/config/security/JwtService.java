@@ -30,7 +30,7 @@ public class JwtService {
     }
 
     public Date expiration() {
-        return new Date(System.currentTimeMillis() + 1000 * 60 * 60);
+        return new Date(System.currentTimeMillis() + 1000 * 3600 * 10);
     }
 
     public String createToken(String username, Map<String, Object> claims) {
