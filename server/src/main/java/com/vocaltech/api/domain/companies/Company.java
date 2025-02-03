@@ -44,8 +44,8 @@ public class Company extends Recipient {
     @ElementCollection
     private List<String> talentProfile;
 
-    @Column(name = "created_at", updatable = false)
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+//    @Column(name = "created_at", updatable = false)
+//    @CreationTimestamp
+//    private LocalDateTime createdAt;
 
 }

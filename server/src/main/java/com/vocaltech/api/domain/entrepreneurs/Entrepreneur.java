@@ -41,9 +41,9 @@ public class Entrepreneur extends Recipient {
     private ProductToDevelop productToDevelop;
 
 
-    @Column(name = "created_at", updatable = false)
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+//    @Column(name = "created_at", updatable = false)
+//    @CreationTimestamp
+//    private LocalDateTime createdAt;
 
     }
 

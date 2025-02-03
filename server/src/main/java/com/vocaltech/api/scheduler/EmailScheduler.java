@@ -38,27 +38,30 @@ public class EmailScheduler {
     }
 
     // Se ejecuta cada 30 minutos
-    @Scheduled(fixedRate = 1800000)
+    @Scheduled(fixedRate = 60000)
     public void processScheduledEmails() {
         List<CampaignRecipient> pendingRecipients = campaignRecipientRepository.findPendingEmails();
+
+        System.out.println("🟢 Emails pendientes encontrados: " + pendingRecipients.size());
 
         for (CampaignRecipient recipient : pendingRecipients) {
             Optional<CampaignEmail> campaignEmail = campaignEmailRepository.findByCampaignAndStep(
                     recipient.getCampaign().getCampaignId(), recipient.getEmailStep()
             );
 
+            if (campaignEmail.isEmpty()) {
+                System.out.println("⚠️ No se encontró un email para la campaña ID: " + recipient.getCampaign().getCampaignId() + " y el paso " + recipient.getEmailStep());
+            }
+
             campaignEmail.ifPresent(email -> sendEmail(recipient, email));
         }
     }
 
-    private String downloadTemplateFromS3(String templateKey) {
-        return templateService.getTemplate(templateKey); // Usa el servicio de caching
-    }
 
 
     private void sendEmail(CampaignRecipient recipient, CampaignEmail campaignEmail) {
-        String templateContent = downloadTemplateFromS3(campaignEmail.getTemplateKey()); // Descarga el template como String
-        String emailBody = templateService.processTemplate(templateContent, recipient.getRecipient().getRecipientId()); // Procesa el template con Thymeleaf
+        String templateKey = campaignEmail.getTemplateKey();
+        String emailBody = templateService.processTemplate(templateKey, recipient.getRecipient().getRecipientId()); // Procesa el template con Thymeleaf
         List<File> attachments = fetchAttachmentsIfNeeded(recipient, campaignEmail);
 
         mailService.sendEmailWithFiles(
@@ -67,6 +70,8 @@ public class EmailScheduler {
                 emailBody,
                 attachments
         );
+
+        System.out.println("✅ Email enviado a: " + recipient.getRecipient().getEmail());
 
         updateRecipientForNextEmail(recipient, campaignEmail);
     }
@@ -92,8 +97,8 @@ public class EmailScheduler {
         if (nextEmail.isPresent()) {
 
             LocalDateTime startDate = recipient.getRecipient().getCreatedAt();
-            double delayDays = nextEmail.get().getDelayDays();
-            recipient.setNextEmailDate(startDate.plusDays((long) delayDays));
+            int delayDays = nextEmail.get().getDelayDays();
+            recipient.setNextEmailDate(startDate.plusDays(delayDays));
 
         }
 

@@ -1,6 +1,10 @@
 package com.vocaltech.api.domain.entrepreneurs;
 
 import com.google.zxing.WriterException;
+import com.vocaltech.api.domain.campaigns.Campaign;
+import com.vocaltech.api.domain.campaigns.CampaignRecipient;
+import com.vocaltech.api.domain.campaigns.ICampaignRecipientRepository;
+import com.vocaltech.api.domain.campaigns.ICampaignRepository;
 import com.vocaltech.api.domain.companies.ICompanyRepository;
 import com.vocaltech.api.domain.leads.ILeadRepository;
 import com.vocaltech.api.domain.leads.Lead;
@@ -16,6 +20,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,7 +30,8 @@ public class EntrepreneurService {
     private final IEntrepreneurRepository entrepreneurRepository;
     private final IProductRepository productRepository;
     private final ILeadRepository leadRepository;
-    private final ICompanyRepository companyRepository;
+    private final ICampaignRepository campaignRepository;
+    private final ICampaignRecipientRepository campaignRecipientRepository;
     private final S3Service s3Service;
     private final ChatAnalysisService chatAnalysisService;
     private final PdfGeneratorService pdfGeneratorService;
@@ -34,11 +40,12 @@ public class EntrepreneurService {
     private final MailServices mailServices;
 
     @Autowired
-    public EntrepreneurService(IEntrepreneurRepository entrepreneurRepository, IProductRepository productRepository, ILeadRepository leadRepository, ILeadRepository leadRepository1, ICompanyRepository companyRepository, com.vocaltech.api.service.S3Service s3Service, IRecipientRepository recipientRepository, S3Service s3Service1, ChatAnalysisService chatAnalysisService, PdfGeneratorService pdfGeneratorService, QRCodeService qrCodeService, TranscriptionService transcriptionService, MailServices mailServices) {
+    public EntrepreneurService(IEntrepreneurRepository entrepreneurRepository, IProductRepository productRepository, ILeadRepository leadRepository, ILeadRepository leadRepository1, ICompanyRepository companyRepository, com.vocaltech.api.service.S3Service s3Service, IRecipientRepository recipientRepository, ICampaignRepository campaignRepository, ICampaignRecipientRepository campaignRecipientRepository, S3Service s3Service1, ChatAnalysisService chatAnalysisService, PdfGeneratorService pdfGeneratorService, QRCodeService qrCodeService, TranscriptionService transcriptionService, MailServices mailServices) {
         this.entrepreneurRepository = entrepreneurRepository;
         this.productRepository = productRepository;
         this.leadRepository = leadRepository1;
-        this.companyRepository = companyRepository;
+        this.campaignRepository = campaignRepository;
+        this.campaignRecipientRepository = campaignRecipientRepository;
         this.s3Service = s3Service1;
         this.chatAnalysisService = chatAnalysisService;
         this.pdfGeneratorService = pdfGeneratorService;
@@ -47,6 +54,11 @@ public class EntrepreneurService {
         this.mailServices = mailServices;
     }
 
+    //path para producción
+    private String path = "/tmp";
+
+    //path para local
+    //private String path = "src/main/java/com/vocaltech/api/tmp/";
 
     private Set<Product> getProductsFromNames(List<String> productNames) {
         // Convertir nombres a IDs usando ProductEnum y cargar los servicios desde la base de datos
@@ -81,7 +93,7 @@ public class EntrepreneurService {
     }
 
     private File generateAndUploadPdf(String name, String analysis, byte[] qrBytes, String pdfFilename) throws IOException {
-        String pdfPath = "src/main/java/com/vocaltech/api/tmp/" + pdfFilename;
+        String pdfPath =  path + pdfFilename;
         pdfGeneratorService.generatePdf(pdfPath, analysis, name, qrBytes);
         File pdfFile = new File(pdfPath);
         if (!pdfFile.exists() || pdfFile.length() == 0) {
@@ -93,7 +105,7 @@ public class EntrepreneurService {
 
     private void sendDiagnosticEmail(String email, String analysis, File pdfFile, byte[] qrBytes, String qrFilename) {
         // Crear archivo temporal para el QR
-        File qrFile = new File("src/main/java/com/vocaltech/api/tmp/" + qrFilename);
+        File qrFile = new File(path + qrFilename);
 
         try (FileOutputStream fos = new FileOutputStream(qrFile)) {
             fos.write(qrBytes);
@@ -134,86 +146,83 @@ public class EntrepreneurService {
     ) {
         Optional<Lead> leadOptional = leadRepository.findByEmail(requestDTO.email());
 
-    Entrepreneur entrepreneur;
+        Entrepreneur entrepreneur;
 
-    if (leadOptional.isPresent()) {
-        // Si es un Lead, convertimos el Lead en Entrepreneur
-        Lead lead = leadOptional.get();
+        if (leadOptional.isPresent()) {
+            // Si es un Lead, convertimos el Lead en Entrepreneur
+            Lead lead = leadOptional.get();
 
-        // Convertir el Lead en Entrepreneur
-        entrepreneur = new Entrepreneur();
-        entrepreneur.setName(lead.getName());
-        entrepreneur.setEmail(lead.getEmail());
-        entrepreneur.setSubscribed(true); // Marcar como suscrito, por ejemplo
+            // Convertir el Lead en Entrepreneur
+            entrepreneur = new Entrepreneur();
+            entrepreneur.setName(lead.getName());
+            entrepreneur.setEmail(lead.getEmail());
+            entrepreneur.setSubscribed(true); // Marcar como suscrito, por ejemplo
 
-        // Otros campos específicos de Entrepreneur, como el teléfono, descripción, etc.
-        entrepreneur.setPhone(requestDTO.phone());
-        entrepreneur.setType(requestDTO.type());
-        entrepreneur.setDescription(requestDTO.description());
-        entrepreneur.setMVP(requestDTO.MVP());
-        entrepreneur.setProductToDevelop(requestDTO.productToDevelop());
-        entrepreneur.setHireJunior(requestDTO.hireJunior());
-        entrepreneur.setMoreInfo(requestDTO.moreInfo());
+            // Otros campos específicos de Entrepreneur, como el teléfono, descripción, etc.
+            entrepreneur.setPhone(requestDTO.phone());
+            entrepreneur.setType(requestDTO.type());
+            entrepreneur.setDescription(requestDTO.description());
+            entrepreneur.setMVP(requestDTO.MVP());
+            entrepreneur.setProductToDevelop(requestDTO.productToDevelop());
+            entrepreneur.setHireJunior(requestDTO.hireJunior());
+            entrepreneur.setMoreInfo(requestDTO.moreInfo());
 
-        // Convertir productos (si es necesario)
-        Set<Product> products = getProductsFromNames(requestDTO.products());
-        entrepreneur.setProducts(new ArrayList<>(products));
+            // Convertir productos (si es necesario)
+            Set<Product> products = getProductsFromNames(requestDTO.products());
+            entrepreneur.setProducts(new ArrayList<>(products));
 
-        entrepreneur.setAudioKey(audioFileName);
-        entrepreneur.setTranscription(transcription);
-        entrepreneur.setAnalysis(analysis);
-        entrepreneur.setDiagnosisPdfKey(pdfFileName);
-        entrepreneur.setQrCodeKey(qrFileName);
+            entrepreneur.setAudioKey(audioFileName);
+            entrepreneur.setTranscription(transcription);
+            entrepreneur.setAnalysis(analysis);
+            entrepreneur.setDiagnosisPdfKey(pdfFileName);
+            entrepreneur.setQrCodeKey(qrFileName);
 
-        // Guardar o actualizar en la base de datos
-        return entrepreneur;
-    } else {
-        // Si no es un Lead, buscamos si ya es un Entrepreneur
-
-        Entrepreneur existingEntrepreneur = entrepreneurRepository.findByEmail(requestDTO.email())
-                .orElseGet(() -> {
-                    // Si no se encuentra, creamos un nuevo Entrepreneur
-                    Entrepreneur newEntrepreneur = new Entrepreneur();
-                    newEntrepreneur.setEmail(requestDTO.email());
-                    newEntrepreneur.setName(requestDTO.name());
-                    newEntrepreneur.setSubscribed(true); // Marcar como suscrito, por ejemplo
-
-                    // Otros campos específicos de Entrepreneur, como el teléfono, descripción, etc.
-                    newEntrepreneur.setPhone(requestDTO.phone());
-                    newEntrepreneur.setType(requestDTO.type());
-                    newEntrepreneur.setDescription(requestDTO.description());
-                    newEntrepreneur.setMVP(requestDTO.MVP());
-                    newEntrepreneur.setProductToDevelop(requestDTO.productToDevelop());
-                    newEntrepreneur.setHireJunior(requestDTO.hireJunior());
-                    newEntrepreneur.setMoreInfo(requestDTO.moreInfo());
-
-                    // Convertir productos (si es necesario)
-                    Set<Product> products = getProductsFromNames(requestDTO.products());
-                    newEntrepreneur.setProducts(new ArrayList<>(products));
-
-
-                    newEntrepreneur.setAudioKey(audioFileName);
-                    newEntrepreneur.setTranscription(transcription);
-                    newEntrepreneur.setAnalysis(analysis);
-                    newEntrepreneur.setDiagnosisPdfKey(pdfFileName);
-                    newEntrepreneur.setQrCodeKey(qrFileName);
-
-                    return newEntrepreneur;
-                });
-
-        // Si ya existe un Entrepreneur, realizamos la actualización, si no, guardamos el nuevo.
-        if (existingEntrepreneur.getRecipientId() != null) {
-            // Ya existe, lo actualizamos
-            return updateEntrepreneur(existingEntrepreneur.getRecipientId(), requestDTO);
+            // Guardar o actualizar en la base de datos
+            return entrepreneur;
         } else {
-            // Nuevo Entrepreneur, lo guardamos
-            return existingEntrepreneur;
+            // Si no es un Lead, buscamos si ya es un Entrepreneur
+
+            Entrepreneur existingEntrepreneur = entrepreneurRepository.findByEmail(requestDTO.email())
+                    .orElseGet(() -> {
+                        // Si no se encuentra, creamos un nuevo Entrepreneur
+                        Entrepreneur newEntrepreneur = new Entrepreneur();
+                        newEntrepreneur.setEmail(requestDTO.email());
+                        newEntrepreneur.setName(requestDTO.name());
+                        newEntrepreneur.setSubscribed(true); // Marcar como suscrito, por ejemplo
+
+                        // Otros campos específicos de Entrepreneur, como el teléfono, descripción, etc.
+                        newEntrepreneur.setPhone(requestDTO.phone());
+                        newEntrepreneur.setType(requestDTO.type());
+                        newEntrepreneur.setDescription(requestDTO.description());
+                        newEntrepreneur.setMVP(requestDTO.MVP());
+                        newEntrepreneur.setProductToDevelop(requestDTO.productToDevelop());
+                        newEntrepreneur.setHireJunior(requestDTO.hireJunior());
+                        newEntrepreneur.setMoreInfo(requestDTO.moreInfo());
+
+                        // Convertir productos (si es necesario)
+                        Set<Product> products = getProductsFromNames(requestDTO.products());
+                        newEntrepreneur.setProducts(new ArrayList<>(products));
+
+
+                        newEntrepreneur.setAudioKey(audioFileName);
+                        newEntrepreneur.setTranscription(transcription);
+                        newEntrepreneur.setAnalysis(analysis);
+                        newEntrepreneur.setDiagnosisPdfKey(pdfFileName);
+                        newEntrepreneur.setQrCodeKey(qrFileName);
+
+                        return newEntrepreneur;
+                    });
+
+            // Si ya existe un Entrepreneur, realizamos la actualización, si no, guardamos el nuevo.
+            if (existingEntrepreneur.getRecipientId() != null) {
+                // Ya existe, lo actualizamos
+                return updateEntrepreneur(existingEntrepreneur.getRecipientId(), requestDTO);
+            } else {
+                // Nuevo Entrepreneur, lo guardamos
+                return existingEntrepreneur;
+            }
         }
     }
-    }
-
-
-
 
 
     @Transactional
@@ -225,8 +234,7 @@ public class EntrepreneurService {
     ) throws IOException, WriterException {
 
 
-
-        String audioFileName = requestDTO.name() +"-"+ audioFilename;
+        String audioFileName = requestDTO.name() + "-" + audioFilename;
         // Subir archivos a S3
         String audioUrl = s3Service.uploadFile("audios/", audioFileName, audioInputStream, "audio/mpeg");
 
@@ -244,8 +252,7 @@ public class EntrepreneurService {
 
         // Analizar transcripción
         //String analysis = chatAnalysisService.analyzeTranscription(transcription);
-        String analysis ="En equipos tecnológicos como el tuyo, una comunicación poco clara puede traducirse en malentendidos, retrasos y pérdida de eficiencia. Si la información no fluye de manera estructurada, las decisiones se dilatan y la calidad del trabajo se ve afectada. Esto no solo impacta la productividad, sino que también genera frustración y desgaste en el equipo.\n" +
-                "\n" +
+        String analysis = "En equipos tecnológicos como el tuyo, una comunicación poco clara puede traducirse en malentendidos, retrasos y pérdida de eficiencia. Si la información no fluye de manera estructurada, las decisiones se dilatan y la calidad del trabajo se ve afectada. Esto no solo impacta la productividad, sino que también genera frustración y desgaste en el equipo." +
                 "La buena noticia es que esto tiene solución. Con las herramientas y metodologías adecuadas, tu equipo puede lograr una comunicación más ágil, precisa y alineada con sus objetivos. Desde estrategias efectivas para reuniones hasta la optimización del uso de herramientas digitales, podemos ayudarte a transformar la manera en que tu equipo se comunica, asegurando mejores resultados en menos tiempo. ";
 
         String pdfFilename = requestDTO.name() + "-diagnosis.pdf";
@@ -260,14 +267,31 @@ public class EntrepreneurService {
 
         Entrepreneur entrepreneur = handleEntrepreneurConversion(requestDTO, audioFileName, transcription, analysis, pdfFilename, qrFilename);
 
-        // Enviar email con los archivos adjuntos
-        sendDiagnosticEmail(requestDTO.email(), analysis, pdfFile, qrBytes, qrFilename);
+        entrepreneur = entrepreneurRepository.save(entrepreneur);
+
+        Campaign segmentedCampaign = campaignRepository.findByName("Segmented Campaign")
+                .orElseThrow(() -> new RuntimeException("La campaña no existe"));
+        // 🟢 **Asignar a la campaña correspondiente**
+        if (segmentedCampaign != null) { // 🔥 Si la campaña está definida, la asigna
+            CampaignRecipient campaignRecipient = new CampaignRecipient();
+            campaignRecipient.setCampaign(segmentedCampaign);
+            campaignRecipient.setRecipient(entrepreneur);
+            campaignRecipient.setEmailStep(0);
+            campaignRecipient.setNextEmailDate(LocalDateTime.now()); // Enviar el primer email de inmediato
+            campaignRecipient.setStatus(CampaignRecipient.Status.PENDING);
+
+            campaignRecipientRepository.save(campaignRecipient);
+        }
+
+            // Enviar email con los archivos adjuntos
+            sendDiagnosticEmail(requestDTO.email(), analysis, pdfFile, qrBytes, qrFilename);
 
 // Guardar el entrepreneur
-        return entrepreneurRepository.save(entrepreneur);
+            return entrepreneur;
 
 
-    }
+        }
+
 
 
 

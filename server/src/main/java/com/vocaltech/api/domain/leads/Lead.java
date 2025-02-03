@@ -11,14 +11,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
 @DiscriminatorValue("Lead")
 public class Lead extends Recipient {
-
-    @Column(name = "created_at", updatable = false)
-    @CreationTimestamp
-    private LocalDateTime createdAt;
 
 }
