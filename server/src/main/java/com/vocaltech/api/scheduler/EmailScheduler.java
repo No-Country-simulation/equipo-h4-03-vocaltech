@@ -38,7 +38,7 @@ public class EmailScheduler {
     }
 
     // Se ejecuta cada 30 minutos
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 3600000)
     public void processScheduledEmails() {
         List<CampaignRecipient> pendingRecipients = campaignRecipientRepository.findPendingEmails();
 
