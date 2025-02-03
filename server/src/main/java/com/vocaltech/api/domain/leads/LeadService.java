@@ -1,9 +1,15 @@
 package com.vocaltech.api.domain.leads;
 
+import com.vocaltech.api.domain.campaigns.Campaign;
+import com.vocaltech.api.domain.campaigns.CampaignRecipient;
+import com.vocaltech.api.domain.campaigns.ICampaignRecipientRepository;
+import com.vocaltech.api.domain.campaigns.ICampaignRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -11,9 +17,14 @@ import java.util.UUID;
 public class LeadService {
 
     private final ILeadRepository leadRepository;
+    private final ICampaignRepository campaignRepository;
+    private final ICampaignRecipientRepository campaignRecipientRepository;
 
-    public LeadService(ILeadRepository leadRepository) {
+    @Autowired
+    public LeadService(ILeadRepository leadRepository, ICampaignRepository campaignRepository, ICampaignRecipientRepository campaignRecipientRepository) {
         this.leadRepository = leadRepository;
+        this.campaignRepository = campaignRepository;
+        this.campaignRecipientRepository = campaignRecipientRepository;
     }
 
     public Lead createLead(LeadRequestDTO requestDTO) {
@@ -24,7 +35,23 @@ public class LeadService {
                 requestDTO.subscribed() != null ? requestDTO.subscribed() : true // Valor predeterminado
         );
 
-        return leadRepository.save(lead);
+        lead = leadRepository.save(lead);
+
+        Campaign leadCampaign = campaignRepository.findByName("Leads Campaign")
+                .orElseThrow(() -> new RuntimeException("La campaña no existe"));
+        // 🟢 **Asignar a la campaña correspondiente**
+        if (leadCampaign != null) { // 🔥 Si la campaña está definida, la asigna
+            CampaignRecipient campaignRecipient = new CampaignRecipient();
+            campaignRecipient.setCampaign(leadCampaign);
+            campaignRecipient.setRecipient(lead);
+            campaignRecipient.setEmailStep(0);
+            campaignRecipient.setNextEmailDate(LocalDateTime.now()); // Enviar el primer email de inmediato
+            campaignRecipient.setStatus(CampaignRecipient.Status.PENDING);
+
+            campaignRecipientRepository.save(campaignRecipient);
+        }
+
+        return lead;
     }
 
     public List<Lead> getAllLeads() {

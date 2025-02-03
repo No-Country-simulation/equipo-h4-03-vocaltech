@@ -26,11 +26,11 @@ public class TemplateService {
     }
 
     @Cacheable(value = "templates", key = "#templateKey")
-    public String getTemplate(String templateKey) {
+    private String getTemplate(String templateKey) {
         return s3Service.downloadTemplateAsString(templateKey);
     }
 
-    public String processTemplate(String templateContent, UUID recipientId) {
+    public String processTemplate(String templateKey, UUID recipientId) {
 
         Recipient recipient = recipientRepository.findById(recipientId)
                 .orElseThrow(() -> new IllegalArgumentException("Recipient no encontrado"));
@@ -39,7 +39,8 @@ public class TemplateService {
         Context context = new Context();
         context.setVariable("leadName",  recipient.getName()); // Nombre del lead
         context.setVariable("leadId", recipient.getRecipientId().toString()); // ID del lead
-        return templateEngine.process(templateContent, context); // Procesa el template
+
+        return templateEngine.process(templateKey, context); // Procesa el template
     }
 
 }

@@ -63,7 +63,7 @@ public class DataLoader implements CommandLineRunner {
         List<String> segmentedTemplates = templates.subList(mitad, totalTemplates);
 
         // Cargar emails para Leads Campaign
-        int step = 1;
+        int step = 0;
         for (String templateKey : leadsTemplates) {
             CampaignEmail email = CampaignEmail.builder()
                     .campaign(leadsCampaign)
@@ -71,13 +71,13 @@ public class DataLoader implements CommandLineRunner {
                     .subject("Leads Campaign - Email " + step)
                     .templateKey(templateKey)
                     .hasAttachments(false)
-                    .delayDays(step * 0.1)
+                    .delayDays(step)
                     .build();
             campaignEmailRepository.save(email);
         }
 
         // Cargar emails para Segmented Campaign
-        step = 1;
+        step = 0;
         for (String templateKey : segmentedTemplates) {
             CampaignEmail email = CampaignEmail.builder()
                     .campaign(segmentedCampaign)
@@ -85,7 +85,7 @@ public class DataLoader implements CommandLineRunner {
                     .subject("Segmented Campaign - Email " + step)
                     .templateKey(templateKey)
                     .hasAttachments(false)
-                    .delayDays(step * 0.1)
+                    .delayDays(step)
                     .build();
             campaignEmailRepository.save(email);
         }

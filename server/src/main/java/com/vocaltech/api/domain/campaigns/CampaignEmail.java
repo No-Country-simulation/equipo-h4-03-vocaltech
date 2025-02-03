@@ -33,6 +33,6 @@ public class CampaignEmail {
     private boolean hasAttachments; // Si el email lleva archivos adjuntos
 
     @Column(nullable = false)
-    private double delayDays; // Cuántos días después del primer email se envía
+    private int delayDays; // Cuántos días después del primer email se envía
 }
 

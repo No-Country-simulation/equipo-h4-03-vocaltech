@@ -17,7 +17,7 @@ import java.util.UUID;
 public class CampaignRecipient {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    private UUID campaignRecipientId;
 
     @ManyToOne
     @JoinColumn(name = "campaign_id", nullable = false)
@@ -34,12 +34,20 @@ public class CampaignRecipient {
     private LocalDateTime nextEmailDate; // Cuándo enviar el próximo email
 
     @Enumerated(EnumType.STRING)
-    private Status status = Status.PENDING;
+    private Status status;
 
     public enum Status {
         PENDING, SENT, FAILED
     }
+
+    @PrePersist
+    protected void prePersist() {
+        if (status == null) {
+            status = Status.PENDING;
+        }
+    }
 }
+
 
 
 

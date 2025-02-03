@@ -16,6 +16,9 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     database: postgresql
 
+  main:
+    allow-bean-definition-overriding: true
+
 #  mail:
 #    host: smtp.gmail.com
 #    port: 587

@@ -78,7 +78,6 @@ public abstract class Recipient {
 
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime createdAt;
 
     @Transient // No se persiste en la base de datos, pero lo expone como campo en el DTO

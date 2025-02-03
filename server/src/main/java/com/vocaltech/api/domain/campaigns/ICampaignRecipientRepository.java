@@ -10,6 +10,6 @@ import java.util.UUID;
 @Repository
 public interface ICampaignRecipientRepository extends JpaRepository<CampaignRecipient, UUID> {
 
-    @Query("SELECT cr FROM CampaignRecipient cr WHERE cr.nextEmailDate <= CURRENT_DATE")
+    @Query("SELECT cr FROM CampaignRecipient cr WHERE cr.status = 'PENDING'") //WHERE cr.nextEmailDate <= CURRENT_DATE
     List<CampaignRecipient> findPendingEmails();
 }
