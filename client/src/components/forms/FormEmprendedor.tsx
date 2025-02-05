@@ -2,6 +2,7 @@ import { Controller, useForm } from "react-hook-form";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import Greetings from "../modals/Greetings";
+import axios from "axios";
 
 const FormEmprendedor = () => {
   const MySwal = withReactContent(Swal);
@@ -9,62 +10,90 @@ const FormEmprendedor = () => {
   // Hook useForm
   const { handleSubmit, control, register, watch, reset } = useForm<FormData>();
 
-  // Logica del POST y Logueo de usuario
+  // Definición de la interfaz FormData
   interface FormData {
-    nombreCompleto: string;
+    name: string;
     email: string;
-    telefono?: string;
-    tipoEmprendimiento: string;
-    especificarEmprendimiento?: string;
-    tipoNecesidad: string;
-    especificarNecesidad?: string;
-    tipoNecesidadArea: string;
-    especificarNecesidadArea?: string;
-    audio: FileList;
-    mvp: "si" | "no";
-    tipoServicio?: string;
-    especificarServicio?: string;
-    talentoIT: "si" | "no";
+    phone?: string;
+    type: string;
+    description?: string;
+    MVP: "si" | "no";
+    productToDevelop: string;
+    hireJunior: "si" | "no";
+    moreInfo: "si" | "no";
+    products: string[];
+    audioFile: FileList;
   }
 
-  const onSubmit = (data: FormData) => {
-    console.log("Form Data: ", data);
+  // Función para manejar el envío del formulario
+  const onSubmit = async (data: FormData) => {
+    const formData = new FormData();
 
-    MySwal.fire({
-      html: <Greetings />,
-      showConfirmButton: false,
-      width: "fit-content",
-      scrollbarPadding: false,
-    });
+    formData.append("name", data.name);
+    formData.append("email", data.email);
+    if (data.phone) formData.append("phone", data.phone);
+    formData.append("type", data.type);
+    if (data.description) formData.append("description", data.description);
+    formData.append("MVP", data.MVP === "si" ? "true" : "false");
+    formData.append("productToDevelop", data.productToDevelop);
+    formData.append("hireJunior", data.hireJunior === "si" ? "true" : "false");
+    formData.append("moreInfo", data.moreInfo === "si" ? "true" : "false");
+    data.products.forEach((product) => formData.append("products", product));
+    if (data.audioFile && data.audioFile[0]) {
+      formData.append("audioFile", data.audioFile[0]);
+    }
 
-    reset();
+    try {
+      const response = await axios.post(
+        //"http://localhost:8090/api/entrepreneurs",
+        "https://vocaltech-production.up.railway.app/api/entrepreneurs",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      console.log("Response:", response.data);
+
+      MySwal.fire({
+        html: <Greetings />,
+        showConfirmButton: false,
+        width: "fit-content",
+        scrollbarPadding: false,
+      });
+
+      reset();
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
   };
 
-  const tipoEmprendimiento = watch("tipoEmprendimiento");
-  const tipoNecesidad = watch("tipoNecesidad");
-  const tipoNecesidadArea = watch("tipoNecesidadArea");
-  const tipoServicio = watch("tipoServicio");
+  const type = watch("type");
+  const productToDevelop = watch("productToDevelop");
 
   return (
-    <form className="w-[750px] flex flex-col gap-10">
+    <form
+      className="w-[750px] flex flex-col gap-10"
+      onSubmit={handleSubmit(onSubmit)}
+    >
       {/* Datos personales */}
       <div className="flex flex-col w-full gap-6 p-10 border-2 rounded-lg shadow-xl backdrop-blur-sm bg-secondary-light/50 border-primary/30">
-        {/* Full name */}
         <p className="self-center mb-5 text-3xl font-semibold">
           Formulario Emprendedor
         </p>
         <div className="flex flex-col gap-1">
-          <label htmlFor="nombreCompleto" className="block text-sm font-medium">
+          <label htmlFor="name" className="block text-sm font-medium">
             Nombre completo
           </label>
           <input
             type="text"
-            id="nombreCompleto"
-            {...register("nombreCompleto", { required: true })}
+            id="name"
+            {...register("name", { required: true })}
             className="w-full p-2 mt-1 rounded-md shadow-sm outline-none focus:ring-primary focus:ring-2"
           />
         </div>
-        {/* Email and Tel */}
         <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col w-full gap-1">
             <label htmlFor="email" className="block text-sm font-medium">
@@ -78,27 +107,27 @@ const FormEmprendedor = () => {
             />
           </div>
           <div className="flex flex-col w-full gap-1">
-            <label htmlFor="telefono" className="block text-sm font-medium">
-              Número de télefono (opcional)
+            <label htmlFor="phone" className="block text-sm font-medium">
+              Número de teléfono (opcional)
             </label>
             <input
               type="text"
-              id="telefono"
-              {...register("telefono")}
+              id="phone"
+              {...register("phone")}
               className="w-full p-2 mt-1 rounded-md shadow-sm outline-none focus:ring-primary focus:ring-2"
             />
           </div>
         </div>
       </div>
-      {/* Datos para Vos y tu Voz */}
+
+      {/* Tipo de emprendimiento */}
       <div className="flex flex-col w-full gap-6 p-10 border-2 rounded-lg shadow-xl backdrop-blur-sm bg-secondary-light/50 border-primary/30">
-        {/* Tipo emprendimiento */}
         <div className="flex flex-col gap-1">
           <label className="block text-sm font-medium">
             ¿Qué tipo de emprendimiento tenés?
           </label>
           <Controller
-            name="tipoEmprendimiento"
+            name="type"
             control={control}
             defaultValue=""
             render={({ field }) => (
@@ -107,108 +136,23 @@ const FormEmprendedor = () => {
                 className="w-full p-2 mt-1 rounded-md shadow-sm outline-none focus:ring-primary focus:ring-2"
               >
                 <option value="">Selecciona una opción</option>
-                <option value="Startup">Startup</option>
-                <option value="Negocio pequeño/medio">
-                  Negocio pequeño/medio
-                </option>
-                <option value="Freelance">Freelance</option>
-                <option value="Otro">Otro</option>
+                <option value="STARTUP">Startup</option>
+                <option value="SMALL_BUSINESS">Negocio pequeño/medio</option>
+                <option value="FREELANCE">Freelance</option>
+                <option value="OTHER">Otro</option>
               </select>
             )}
           />
-          {tipoEmprendimiento === "Otro" && (
+          {type === "Otro" && (
             <input
               type="text"
               placeholder="Especificar"
-              {...register("especificarEmprendimiento")}
+              {...register("description")}
               className="w-full p-2 mt-1 rounded-md shadow-sm outline-none focus:ring-primary focus:ring-2"
             />
           )}
         </div>
-        {/* Que mejorar */}
-        <div className="flex flex-col gap-1">
-          <label className="block text-sm font-medium">
-            ¿Qué es lo que más te gustaría mejorar en tu comunicación?
-          </label>
-          <Controller
-            name="tipoNecesidad"
-            control={control}
-            defaultValue=""
-            render={({ field }) => (
-              <select
-                {...field}
-                className="w-full p-2 mt-1 rounded-md shadow-sm outline-none focus:ring-primary focus:ring-2"
-              >
-                <option value="">Selecciona una opción</option>
-                <option value="Pitch de Ventas">Pitch de Ventas</option>
-                <option value="Comunicación con Clientes">
-                  Comunicación con Clientes
-                </option>
-                <option value="Storytelling">Storytelling</option>
-                <option value="Liderazgo personal">Liderazgo personal</option>
-                <option value="Otro">Otro</option>
-              </select>
-            )}
-          />
-          {tipoNecesidad === "Otro" && (
-            <input
-              type="text"
-              placeholder="Especificar"
-              {...register("especificarNecesidad")}
-              className="w-full p-2 mt-1 rounded-md shadow-sm outline-none focus:ring-primary focus:ring-2"
-            />
-          )}
-        </div>
-        {/* Que areas mejorar */}
-        <div className="flex flex-col gap-1">
-          <label className="block text-sm font-medium">
-            ¿En qué área necesitás más ayuda?
-          </label>
-          <Controller
-            name="tipoNecesidadArea"
-            control={control}
-            defaultValue=""
-            render={({ field }) => (
-              <select
-                {...field}
-                className="w-full p-2 mt-1 rounded-md shadow-sm outline-none focus:ring-primary focus:ring-2"
-              >
-                <option value="">Selecciona una opción</option>
-                <option value="Oratoria">Oratoria</option>
-                <option value="Técnicas vocales">Técnicas vocales</option>
-                <option value="Liderazgo vocal">Liderazgo vocal</option>
-                <option value="Comunicación efectiva">
-                  Comunicación efectiva
-                </option>
-                <option value="Otro">Otro</option>
-              </select>
-            )}
-          />
-          {tipoNecesidadArea === "Otro" && (
-            <input
-              type="text"
-              placeholder="Especificar"
-              {...register("especificarNecesidadArea")}
-              className="w-full p-2 mt-1 rounded-md shadow-sm outline-none focus:ring-primary focus:ring-2"
-            />
-          )}
-        </div>
-        {/* Subir audio */}
-        <div className="flex flex-col gap-1">
-          <label htmlFor="audio" className="block text-sm font-medium">
-            Subir un archivo de audio
-          </label>
-          <input
-            type="file"
-            id="audio"
-            accept="audio/*"
-            {...register("audio")}
-            className="w-full text-sm cursor-pointer text-secondary file:mr-4 file:py-3 file:px-5 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent-light file:text-white hover:file:bg-accent file:cursor-pointer"
-          />
-        </div>
-      </div>
-      {/* Datos para No Country */}
-      <div className="flex flex-col w-full gap-6 p-10 border-2 rounded-lg shadow-xl backdrop-blur-sm bg-secondary-light/50 border-primary/30">
+
         {/* Desarrollar MVP */}
         <div className="flex flex-col gap-1">
           <label className="block text-sm font-medium">
@@ -219,7 +163,7 @@ const FormEmprendedor = () => {
               <input
                 type="radio"
                 value="si"
-                {...register("mvp")}
+                {...register("MVP")}
                 className="w-4 h-4 outline-none accent-accent-light"
               />
               <span className="ml-2 text-sm">Sí</span>
@@ -228,20 +172,21 @@ const FormEmprendedor = () => {
               <input
                 type="radio"
                 value="no"
-                {...register("mvp")}
+                {...register("MVP")}
                 className="w-4 h-4 outline-none accent-accent-light"
               />
               <span className="ml-2 text-sm">No</span>
             </label>
           </div>
         </div>
+
         {/* Tipo de producto */}
         <div className="flex flex-col gap-1">
           <label className="block text-sm font-medium">
             ¿Qué tipo de producto o servicio estás buscando desarrollar?
           </label>
           <Controller
-            name="tipoServicio"
+            name="productToDevelop"
             control={control}
             defaultValue=""
             render={({ field }) => (
@@ -250,22 +195,23 @@ const FormEmprendedor = () => {
                 className="w-full p-2 mt-1 rounded-md shadow-sm outline-none focus:ring-primary focus:ring-2"
               >
                 <option value="">Selecciona una opción</option>
-                <option value="App móvil">App móvil</option>
-                <option value="Plataforma web">Plataforma web</option>
-                <option value="Producto físico">Producto físico</option>
-                <option value="Otro">Otro</option>
+                <option value="MOBILE_APP">App móvil</option>
+                <option value="WEB_PLATFORM">Plataforma web</option>
+                <option value="PHYSICAL_PRODUCT">Producto físico</option>
+                <option value="OTHER">Otro</option>
               </select>
             )}
           />
-          {tipoServicio === "Otro" && (
+          {productToDevelop === "Otro" && (
             <input
               type="text"
               placeholder="Especificar"
-              {...register("especificarServicio")}
+              {...register("description")}
               className="w-full p-2 mt-1 rounded-md shadow-sm outline-none focus:ring-primary focus:ring-2"
             />
           )}
         </div>
+
         {/* Talento junior */}
         <div className="flex flex-col gap-1">
           <span className="block text-sm font-medium">
@@ -277,7 +223,7 @@ const FormEmprendedor = () => {
               <input
                 type="radio"
                 value="si"
-                {...register("talentoIT")}
+                {...register("hireJunior")}
                 className="w-4 h-4 outline-none accent-accent-light"
               />
               <span className="ml-2 text-sm">Sí</span>
@@ -286,17 +232,88 @@ const FormEmprendedor = () => {
               <input
                 type="radio"
                 value="no"
-                {...register("talentoIT")}
+                {...register("hireJunior")}
                 className="w-4 h-4 outline-none accent-accent-light"
               />
               <span className="ml-2 text-sm">No</span>
             </label>
           </div>
         </div>
+
+        {/* Más información */}
+        <div className="flex flex-col gap-1">
+          <span className="block text-sm font-medium">
+            ¿Deseas recibir más información?
+          </span>
+          <div className="flex items-center mt-2 space-x-4">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                value="si"
+                {...register("moreInfo")}
+                className="w-4 h-4 outline-none accent-accent-light"
+              />
+              <span className="ml-2 text-sm">Sí</span>
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                value="no"
+                {...register("moreInfo")}
+                className="w-4 h-4 outline-none accent-accent-light"
+              />
+              <span className="ml-2 text-sm">No</span>
+            </label>
+          </div>
+        </div>
+
+        {/* Subir audio */}
+        <div className="flex flex-col gap-1">
+          <label htmlFor="audioFile" className="block text-sm font-medium">
+            Subir un archivo de audio
+          </label>
+          <input
+            type="file"
+            id="audioFile"
+            accept="audio/*"
+            {...register("audioFile")}
+            className="w-full text-sm cursor-pointer text-secondary file:mr-4 file:py-3 file:px-5 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-accent-light file:text-white hover:file:bg-accent file:cursor-pointer"
+          />
+        </div>
       </div>
+
+      {/* Sección de selección de productos/servicios */}
+      <div className="flex flex-col w-full gap-6 p-10 border-2 rounded-lg shadow-xl backdrop-blur-sm bg-secondary-light/50 border-primary/30">
+        <p className="text-xl font-semibold">
+          Selecciona los servicios o productos que te interesan:
+        </p>
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            "Liderar a través de la voz",
+            "Entrenamiento personalizado",
+            "Coaching individual",
+            "Pitch de ventas",
+            "Storytelling",
+            "Técnicas vocales",
+            "MVP",
+            "Contratación de talento IT junior",
+          ].map((item) => (
+            <label key={item} className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                value={item}
+                {...register("products")}
+                className="w-4 h-4"
+              />
+              <span>{item}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Botón de envío */}
       <button
         type="submit"
-        onClick={handleSubmit(onSubmit)}
         className="self-start px-24 py-4 text-white transition-all rounded shadow-md outline-none bg-accent-light hover:bg-accent"
       >
         Enviar
