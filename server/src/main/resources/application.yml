@@ -1,0 +1,118 @@
+spring:
+  application:
+    name: api
+  profiles:
+    active: dev
+  datasource:
+    url: ${POSTGRES_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    database: postgresql
+
+  main:
+    allow-bean-definition-overriding: true
+
+#  mail:
+#    host: smtp.gmail.com
+#    port: 587
+#    username: ${MAIL_USERNAME}
+#    password: ${MAIL_PASSWORD}
+#    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          starttls:
+#            enable: true
+#            timeout: 5000
+  mail:
+    username: ${MAIL_USERNAME}
+
+  ai:
+    openai:
+      api-key: ${OPENAI_KEY}
+      base-url: https://api.openai.com
+      chat:
+        enabled: true
+        options:
+          model: gpt-4o-mini
+          temperature: 0.9
+      audio:
+        transcription:
+          options:
+            model: whisper-1
+            response-format: text
+            language: es
+            temperature: 0.2
+    vectorstore:
+      pgvector:
+        distance-type: COSINE_DISTANCE
+        index-type: HNSW
+        dimensions: 1536
+        remove-existing-vector-store-table: true
+
+  jackson:
+    mapper:
+      accept-case-insensitive-properties: true
+    serialization:
+      fail-on-empty-beans: false
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  redis:
+    host: ${REDIS_URL}
+    password: ${REDIS_PASSWORD}
+    timeout: 2000
+
+  cache:
+      type: redis
+      redis:
+        time-to-live: 1h
+        cache-null-values: false
+        key-prefix: "template:"
+        use-key-prefix: true
+
+aws:
+  accessKeyId: ${AWS_ACCESS_KEY_ID}
+  secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
+  region: ${AWS_REGION}
+  s3:
+    bucket-name: "${AWS_S3_BUCKET_NAME}"
+
+cloudinary:
+  name: ${CLOUDINARY_NAME}
+  api:
+    key: ${CLOUDINARY_KEY}
+    secret: ${CLOUDINARY_SECRET}
+
+server:
+  port: 8090
+  error:
+    include-message: always
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 25MB
+
+
+frontend:
+  url: ${FRONTEND_URL}
+
+backend:
+  url: ${BACKEND_URL}
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.ai: TRACE
+    org.springframework.web.client: DEBUG
