@@ -2,27 +2,50 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import NewsletterModal from "../modals/NewsletterModal";
+import axios from "axios";
 
 const Banner = () => {
   const MySwal = withReactContent(Swal);
-  const [email, setEmail] = useState("");
+  const [formData, setFormData] = useState({ name: "", email: "" });
+  const [loading, setLoading] = useState(false);
 
-  const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(event.target.value);
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setLoading(true);
 
-    console.log(email);
-    setEmail("");
+    try {
+      await axios.post(
+        //"http://localhost:8090/api/leads",
+        "https://vocaltech-production.up.railway.app/api/leads",
+        {
+          name: formData.name,
+          email: formData.email,
+        }
+      );
 
-    MySwal.fire({
-      html: <NewsletterModal />,
-      showConfirmButton: false,
-      width: "fit-content",
-      scrollbarPadding: false,
-    });
+      setFormData({ name: "", email: "" });
+
+      MySwal.fire({
+        html: <NewsletterModal />,
+        showConfirmButton: false,
+        width: "fit-content",
+        scrollbarPadding: false,
+      });
+    } catch (error) {
+      console.error("Error al enviar el formulario", error);
+      MySwal.fire({
+        title: "Error",
+        text: "Hubo un problema al registrar tu email. Inténtalo nuevamente.",
+        icon: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -45,18 +68,29 @@ const Banner = () => {
             ¡No te pierdas de nuestras novedades!
           </p>
           <input
+            type="text"
+            name="name"
+            required
+            placeholder="Nombre"
+            value={formData.name}
+            onChange={handleChange}
+            className="w-full p-2 rounded-md"
+          />
+          <input
             type="email"
+            name="email"
             required
             placeholder="Email"
-            value={email}
-            onChange={handleEmailChange}
+            value={formData.email}
+            onChange={handleChange}
             className="w-full p-2 rounded-md"
           />
           <button
             type="submit"
             className="self-end py-3 font-semibold text-white transition-all rounded-lg shadow-2xl bg-accent-light hover:bg-accent px-7"
+            disabled={loading}
           >
-            Quiero más información
+            {loading ? "Enviando..." : "Quiero más información"}
           </button>
         </form>
       </div>
