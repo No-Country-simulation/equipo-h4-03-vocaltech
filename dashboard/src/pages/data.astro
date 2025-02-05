@@ -1,0 +1,11 @@
+---
+// src/pages/leads.astro
+import MainLayout from "../layouts/MainLayout.astro";
+import DataTable from "../components/DataTable.tsx";
+import "../styles/global.css";
+---
+<MainLayout title="Leads">
+    
+    <DataTable client:load />
+
+</MainLayout>

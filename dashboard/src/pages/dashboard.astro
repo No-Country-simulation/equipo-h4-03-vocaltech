@@ -1,0 +1,14 @@
+---
+// src/pages/statistics.astro
+import MainLayout from "../layouts/MainLayout.astro";
+import BarChart from "../components/BarChart.tsx";
+import "../styles/global.css";
+---
+
+<MainLayout title="Dashboard">
+
+    <h1 class="text-2xl font-poppins font-bold mb-4">Dashboard</h1>
+    <div class="bg-white p-4 rounded shadow">
+      <BarChart />
+  
+</MainLayout>
