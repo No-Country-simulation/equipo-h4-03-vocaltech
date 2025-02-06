@@ -75,10 +75,15 @@ Convertirse en la plataforma líder en Latinoamérica para emprendedores y empre
 
 ---
 
-## 🖼 Capturas de Pantalla
+## 🖼 Diseño del producto
 
-![Captura 1](#)
-![Captura 2](#)
+![Imagen 1](https://i.postimg.cc/vmrvFfrt/1.png)
+![Imagen 2](https://i.postimg.cc/XJnkVqxS/2.png)
+![Imagen 3](https://i.postimg.cc/yxdhZGwL/3.png)
+![Imagen 4](https://i.postimg.cc/Y0s6f37M/4.png)
+![Imagen 5](https://i.postimg.cc/VsGW8YCp/5.png)
+![Imagen 6](https://i.postimg.cc/7Y5MPp16/6.png)
+![Imagen 7](https://i.postimg.cc/FHcy33BX/7.png)
 
 ---
 
