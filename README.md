@@ -69,6 +69,16 @@ Convertirse en la plataforma líder en Latinoamérica para emprendedores y empre
 
 ---
 
+## Deploy 🚀
+
+**Cliente:** [https://vocaltech-client.vercel.app/](https://vocaltech-client.vercel.app/)
+
+**Backend:** [https://vocaltech-production.up.railway.app/](https://vocaltech-production.up.railway.app/)
+
+**Frontend:** [https://vocaltech-test.vercel.app/](https://vocaltech-test.vercel.app/)
+
+---
+
 ## 🎥 Video Demo
 
 [Ver Video Demo](#)
